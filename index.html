@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>KUBA Bald Tap</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <!-- Monetag Rewarded Video -->
+  <script src='//libtl.com/sdk.js' data-zone='10111635' data-sdk='show_10111635'></script>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background:#0f0f1a; color:#fff; font-family:Arial, sans-serif; text-align:center; padding:10px; overflow:hidden; }
+    .container { max-width:400px; margin:auto; }
+    .topbar { display:flex; justify-content:space-between; background:#1a1a2e; padding:10px 15px; border-radius:12px; margin-bottom:15px; font-size:14px; font-weight:bold; }
+    .topbar .left { color:#ffd700; }
+    .topbar .right { color:#4ade80; text-align:right; }
+    h1 { font-size:24px; margin:10px 0; font-weight:bold; }
+    .bald { width:180px; height:180px; margin:20px auto; cursor:pointer; user-select:none; }
+    .bald img { width:100%; height:100%; border-radius:50%; transition:0.2s; }
+    .bald:active img { transform:scale(0.92); }
+    .stats { display:flex; justify-content:space-around; margin:15px 0; font-size:14px; }
+    .stat { background:#1a1a2e; padding:8px 12px; border-radius:8px; flex:1; margin:0 5px; }
+    button { 
+      background:#ffd700; color:#000; border:none; padding:12px 20px; 
+      border-radius:12px; font-weight:bold; font-size:16px; margin:8px; width:90%;
+      transition:0.2s;
+    }
+    button:active { transform:scale(0.98); }
+    .ad-points { background:#ff4757; color:white; }
+    .ad-energy { background:#3498db; color:white; }
+    .exchange-btn { background:#9c88ff; color:white; }
+    .upgrade-btn { background:#f39c12; color:white; }
+    .wallet { font-size:11px; word-break:break-all; margin:10px; color:#aaa; padding:8px; background:#1a1a2e; border-radius:8px; }
+    .particle { position:absolute; font-size:26px; pointer-events:none; animation:fly 1s ease-out forwards; font-weight:bold; }
+    @keyframes fly { to { transform:translateY(-120px); opacity:0; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- แถบด้านบน -->
+    <div class="topbar">
+      <div class="left">Points: <span id="pointsDisplay">0</span></div>
+      <div class="right">KUBA: <span id="kubaDisplay">0</span> (<span id="kubaValue">$0.00</span>)</div>
+    </div>
+
+    <h1>KUBA Bald Tap</h1>
+    <div class="bald" id="baldHead">
+      <img id="baldImg" src="bald.png" alt="Bald Head" onerror="this.src='https://via.placeholder.com/300?text=Bald+Head'" />
+    </div>
+
+    <div class="stats">
+      <div class="stat">Energy: <span id="energy">100</span>/100</div>
+      <div class="stat">Level: <span id="level">1</span></div>
+    </div>
+    <div class="wallet" id="walletAddress">Creating wallet...</div>
+
+    <!-- ดูโฆษณา 2 แบบ -->
+    <button class="ad-points" onclick="showAdForPoints()">Watch Ad → +100 Points</button>
+    <button class="ad-energy" onclick="showAdForEnergy()">Watch Ad → +50 Energy</button>
+
+    <!-- แลกเหรียญ -->
+    <button class="exchange-btn" onclick="openExchange()">Exchange Points → KUBA</button>
+
+    <!-- อัปเกรด -->
+    <button class="upgrade-btn" onclick="upgradeCharacter()">Upgrade Tap Power (500 Points)</button>
+
+    <button onclick="copyAddress()">Copy Wallet Address</button>
+    <button onclick="exportKey()" style="background:#5f27cd; color:white;">Export Private Key</button>
+  </div>
+
+  <!-- หน้าต่างแลกเหรียญ -->
+  <div id="exchangeModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:999;">
+    <div style="background:#1a1a2e; margin:20% auto; padding:20px; width:80%; border-radius:16px; text-align:center;">
+      <h2>Exchange Points → KUBA</h2>
+      <p>100 Points = 1 KUBA</p>
+      <select id="exchangeAmount">
+        <option value="100">100 Points → 1 KUBA</option>
+        <option value="500">500 Points → 5 KUBA</option>
+        <option value="1000">1,000 Points → 10 KUBA</option>
+      </select>
+      <button onclick="confirmExchange()" style="background:#4ade80; margin:10px;">Confirm</button>
+      <button onclick="closeExchange()" style="background:#e74c3c;">Cancel</button>
+    </div>
+  </div>
+
+  <script>
+    // === Game Variables ===
+    let points = 0;
+    let kubaBalance = 0;
+    let energy = 100;
+    let maxEnergy = 100;
+    let tapPower = 1;
+    let level = 1;
+    let lastAdTime = 0;
+    const AD_COOLDOWN = 3 * 60 * 1000;
+    let wallet = null;
+    let provider = null;
+    let kubaPrice = 0;
+    const CONTRACT_ADDRESS = '0x8eFc217Bb56e9081455171002F80b84737cB4468';
+    const ABI = [
+      {"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+      {"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"mint","outputs":[],"stateMutability":"nonpayable","type":"function"}
+    ];
+
+    // === Load/Save ===
+    function loadGame() {
+      points = parseFloat(localStorage.getItem('kuba_points')) || 0;
+      kubaBalance = parseFloat(localStorage.getItem('kuba_balance')) || 0;
+      level = parseInt(localStorage.getItem('kuba_level')) || 1;
+      tapPower = level;
+      maxEnergy = 100 + (level - 1) * 20;
+      energy = Math.min(energy, maxEnergy);
+      updateUI();
+    }
+    function saveGame() {
+      localStorage.setItem('kuba_points', points);
+      localStorage.setItem('kuba_balance', kubaBalance);
+      localStorage.setItem('kuba_level', level);
+    }
+
+    // === Init Wallet ===
+    async function initWallet() {
+      loadGame();
+      let privateKey = localStorage.getItem('kuba_private_key');
+      if (!privateKey) {
+        wallet = ethers.Wallet.createRandom();
+        privateKey = wallet.privateKey;
+        localStorage.setItem('kuba_private_key', privateKey);
+        alert('Wallet created! Backup your Private Key.');
+      } else {
+        wallet = new ethers.Wallet(privateKey);
+      }
+      document.getElementById('walletAddress').innerText = 'Wallet: ' + wallet.address.slice(0, 8) + '...' + wallet.address.slice(-6);
+      provider = new ethers.providers.JsonRpcProvider('https://polygon-rpc.com');
+      await loadKubaFromChain();
+      fetchKubaPrice();
+    }
+
+    // === Load KUBA from Chain ===
+    async function loadKubaFromChain() {
+      if (!wallet) return;
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
+      try {
+        const balance = await contract.balanceOf(wallet.address);
+        const chainKuba = parseFloat(ethers.utils.formatUnits(balance, 18));
+        if (chainKuba > kubaBalance) kubaBalance = chainKuba;
+        saveGame();
+        updateUI();
+      } catch (e) { console.log('Chain load failed', e); }
+    }
+
+    // === Fetch Price ===
+    async function fetchKubaPrice() {
+      try {
+        const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=kuba&vs_currencies=usd');
+        const data = await res.json();
+        kubaPrice = data.kuba?.usd || 0;
+        updateUI();
+      } catch (e) { kubaPrice = 0; }
+    }
+    setInterval(fetchKubaPrice, 30000);
+
+    // === Update Bald Color ===
+    function updateBaldColor() {
+      const img = document.getElementById('baldImg');
+      const colors = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57', '#FF9FF3', '#54A0FF'];
+      img.style.filter = `hue-rotate(${level * 45}deg) drop-shadow(0 0 15px ${colors[level % colors.length]})`;
+    }
+
+    // === Tap ===
+    document.getElementById('baldHead').addEventListener('click', () => {
+      if (energy <= 0) {
+        Telegram.WebApp.HapticFeedback.notificationOccurred('error');
+        return;
+      }
+      energy -= 1;
+      points += tapPower;
+      createParticle('+' + tapPower);
+      Telegram.WebApp.HapticFeedback.impactOccurred('medium');
+      checkLevelUp();
+      updateUI();
+      saveGame();
+      if (energy === 0) regenerateEnergy();
+    });
+
+    // === Level Up (ทุก 500 Points) ===
+    function checkLevelUp() {
+      const newLevel = Math.floor(points / 500) + 1;
+      if (newLevel > level) {
+        level = newLevel;
+        tapPower = level;
+        maxEnergy = 100 + (level - 1) * 20;
+        updateBaldColor();
+        alert(`Level Up! Level ${level} | Tap: ${tapPower} | Max Energy: ${maxEnergy}`);
+      }
+    }
+
+    // === Watch Ad for Points ===
+    function showAdForPoints() {
+      if (Date.now() - lastAdTime < AD_COOLDOWN) {
+        alert(`Wait ${Math.ceil((AD_COOLDOWN - (Date.now() - lastAdTime)) / 60000)} min`);
+        return;
+      }
+      show_10111635().then(() => {
+        points += 100;
+        lastAdTime = Date.now();
+        updateUI();
+        saveGame();
+        alert('+100 Points!');
+      }).catch(() => alert('Ad failed'));
+    }
+
+    // === Watch Ad for Energy ===
+    function showAdForEnergy() {
+      if (Date.now() - lastAdTime < AD_COOLDOWN) {
+        alert(`Wait ${Math.ceil((AD_COOLDOWN - (Date.now() - lastAdTime)) / 60000)} min`);
+        return;
+      }
+      show_10111635().then(() => {
+        energy = Math.min(energy + 50, maxEnergy);
+        lastAdTime = Date.now();
+        updateUI();
+        alert('+50 Energy!');
+      }).catch(() => alert('Ad failed'));
+    }
+
+    // === Exchange Modal ===
+    function openExchange() {
+      document.getElementById('exchangeModal').style.display = 'block';
+    }
+    function closeExchange() {
+      document.getElementById('exchangeModal').style.display = 'none';
+    }
+    function confirmExchange() {
+      const amount = parseInt(document.getElementById('exchangeAmount').value);
+      if (points < amount) {
+        alert('Not enough Points!');
+        return;
+      }
+      points -= amount;
+      kubaBalance += amount / 100;
+      saveGame();
+      updateUI();
+      saveKubaToChain();
+      closeExchange();
+      alert(`Exchanged! +${amount / 100} KUBA`);
+    }
+
+    // === Upgrade Character ===
+    function upgradeCharacter() {
+      if (points < 500) {
+        alert('Need 500 Points to upgrade!');
+        return;
+      }
+      points -= 500;
+      level += 1;
+      tapPower = level;
+      maxEnergy += 20;
+      saveGame();
+      updateUI();
+      updateBaldColor();
+      alert(`Upgraded! Level ${level} | Tap: ${tapPower} | Max Energy: ${maxEnergy}`);
+    }
+
+    // === Save KUBA to Chain ===
+    async function saveKubaToChain() {
+      if (!wallet || kubaBalance === 0) return;
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, wallet.connect(provider));
+      try {
+        const tx = await contract.mint(wallet.address, ethers.utils.parseUnits(kubaBalance.toString(), 18));
+        await tx.wait();
+        kubaBalance = 0;
+        saveGame();
+        await loadKubaFromChain();
+      } catch (e) { console.log('Mint failed', e); }
+    }
+
+    // === UI Update ===
+    function updateUI() {
+      document.getElementById('pointsDisplay').innerText = points.toLocaleString();
+      document.getElementById('kubaDisplay').innerText = kubaBalance.toFixed(2);
+      document.getElementById('kubaValue').innerText = `$${(kubaBalance * kubaPrice).toFixed(2)}`;
+      document.getElementById('energy').innerText = energy + '/' + maxEnergy;
+      document.getElementById('level').innerText = level;
+      updateBaldColor();
+    }
+
+    // === Utils ===
+    function createParticle(text) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.innerText = text;
+      p.style.left = Math.random() * 80 + 10 + '%';
+      p.style.top = '40%';
+      document.body.appendChild(p);
+      setTimeout(() => p.remove(), 1000);
+    }
+    function regenerateEnergy() {
+      const interval = setInterval(() => {
+        if (energy < maxEnergy) {
+          energy += 1;
+          updateUI();
+        } else clearInterval(interval);
+      }, 1000);
+    }
+    function copyAddress() {
+      navigator.clipboard.writeText(wallet.address);
+      alert('Copied!');
+    }
+    function exportKey() {
+      alert('Private Key:\n' + wallet.privateKey);
+    }
+
+    // === Start ===
+    Telegram.WebApp.ready();
+    Telegram.WebApp.expand();
+    initWallet();
+    regenerateEnergy();
+  </script>
+</body>
+</html>
