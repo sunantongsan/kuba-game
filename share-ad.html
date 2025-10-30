@@ -1,240 +1,129 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>KUBAMINER - 100,000 KUBA Airdrop!</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>KUBA Miner - แชร์รูปโปรโมท</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Poppins:wght@600;800&display=swap" rel="stylesheet">
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
-    body { 
-      background: linear-gradient(135deg, #0a0a0f, #1a0033); 
-      color:#fff; 
-      font-family: 'Poppins', sans-serif; 
-      text-align:center; 
-      padding:15px; 
-      min-height:100vh;
-      overflow-x:hidden;
-    }
-    .container { max-width:380px; margin:auto; }
-
-    .header { 
-      background: linear-gradient(45deg, #FF4500, #FFD700, #FFA500); 
-      padding:22px; 
-      border-radius:20px 20px 0 0; 
-      color:#000; 
-      font-family: 'Orbitron', sans-serif;
-      box-shadow: 0 15px 40px rgba(255, 69, 0, 0.5);
-      position:relative;
-      overflow:hidden;
-    }
-    .header h1 { 
-      font-size:28px; 
-      font-weight:900; 
-      text-shadow: 0 0 15px #fff;
-      animation: glow 1.5s infinite alternate;
-    }
-    .header p { font-size:15px; margin-top:6px; font-weight:800; }
-
-    @keyframes glow {
-      from { text-shadow: 0 0 10px #fff, 0 0 20px #ff0; }
-      to { text-shadow: 0 0 20px #fff, 0 0 30px #ff0, 0 0 40px #ff0; }
-    }
-
-    .card { 
-      background:#1a1a2e; 
-      border:3px solid #FFD700; 
-      border-top:none;
-      border-radius:0 0 20px 20px; 
-      padding:22px; 
-      box-shadow:0 20px 50px rgba(0,0,0,0.7);
-    }
-
-    .coin-image { 
-      width:220px; height:220px; margin:20px auto; 
-      border-radius:50%; overflow:hidden; 
-      border:8px solid #FFD700; 
-      box-shadow: 
-        0 0 40px rgba(255,215,0,0.9),
-        0 0 80px rgba(255,165,0,0.6),
-        inset 0 0 30px rgba(255,255,255,0.3);
-      animation: pulse 1.8s infinite, spin 12s linear infinite;
-      position:relative;
-    }
-    @keyframes pulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.08); } }
-    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-    .coin-image img { width:100%; height:100%; object-fit:cover; }
-
-    .airdrop-box { 
-      background: linear-gradient(135deg, #FF4500, #FFD700); 
-      color:#000; 
-      padding:20px; 
-      border-radius:18px; 
-      margin:22px 0; 
-      font-weight:900; 
-      font-size:24px;
-      box-shadow:0 8px 25px rgba(255,69,0,0.6);
-      animation: bounce 2s infinite;
-    }
-    @keyframes bounce { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-8px); } }
-
-    .reward { 
-      font-size:36px; 
-      color:#4ade80; 
-      font-weight:900; 
-      text-shadow:0 0 25px #4ade80, 0 0 40px #4ade80; 
-      margin:18px 0;
-      line-height:1.2;
-      animation: flash 2s infinite;
-    }
-    @keyframes flash { 0%,100% { opacity:1; } 50% { opacity:0.7; } }
-
+    body { background:#0f0f1a; color:#fff; font-family:'Poppins',sans-serif; text-align:center; padding:20px; }
+    .container { max-width:400px; margin:auto; }
+    canvas { border-radius:20px; margin:20px auto; display:block; box-shadow:0 10px 30px rgba(255,215,0,0.3); }
     .btn { 
-      background:#FFD700; color:#000; border:none; padding:18px; 
-      border-radius:16px; font-weight:900; font-size:19px; margin:12px auto; width:92%;
-      box-shadow:0 8px 20px rgba(255,215,0,0.5); cursor:pointer;
-      transition:0.3s;
-      display:block;
+      background:linear-gradient(45deg,#FFD700,#FFA500); color:#000; border:none; padding:16px; 
+      border-radius:14px; font-weight:900; font-size:18px; margin:10px auto; width:90%; 
+      cursor:pointer; box-shadow:0 6px 15px rgba(255,215,0,0.4);
     }
-    .btn:hover, .btn:active { transform:scale(0.96); background:#FFA500; }
-
-    .btn-claim { 
-      background: linear-gradient(135deg, #4ade80, #22c55e); 
-      color:white; font-size:22px; 
-      animation: pulseBtn 1.5s infinite;
-    }
-    @keyframes pulseBtn { 0%,100% { transform:scale(1); } 50% { transform:scale(1.03); } }
-
-    .social-btn { 
-      background:#0088cc; color:white; font-size:16px; 
-      padding:14px; font-weight:600;
-    }
-
-    .link-box { 
-      background:#0f0f1a; border:2px dashed #FFD700; 
-      padding:14px; border-radius:12px; margin:18px 0;
-      font-size:14px; word-break:break-all; color:#FFD700;
-      font-weight:bold;
-    }
-
-    .footer { 
-      font-size:12px; color:#ff9900; margin-top:28px; 
-      text-shadow: 0 0 10px #ff9900;
-      font-weight:600;
-    }
-
-    .sparkle {
-      position:absolute; width:6px; height:6px; background:#fff; border-radius:50%;
-      box-shadow:0 0 10px #ff0; animation: sparkle 1.5s infinite;
-    }
-    @keyframes sparkle {
-      0% { transform:scale(0); opacity:1; }
-      100% { transform:scale(2); opacity:0; }
-    }
+    .btn:active { transform:scale(0.96); }
+    .footer { font-size:12px; color:#aaa; margin-top:20px; }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="header">
-      <h1>KUBAMINER</h1>
-      <p>🚀 แจกหนัก 100,000 KUBA! 🚀</p>
-    </div>
-
-    <div class="card">
-      <!-- รูปตัวการ์ตูนหัวโตสีเหลือง เป็นเหรียญ KUBA -->
-      <div class="coin-image">
-        <img src="https://i.ibb.co.com/0jX8s1L/kuba-coin.png" alt="KUBA Coin" onerror="this.src='https://via.placeholder.com/220/FFD700/000?text=KUBA'" />
-      </div>
-
-      <div class="airdrop-box">
-        🎁 แจกฟรี 100,000 KUBA!
-      </div>
-
-      <div class="reward">
-        รับทันที<br><span style="font-size:42px;">100,000</span> KUBA<br>
-        <span style="font-size:20px; color:#fff;">มูลค่าหลายหมื่นบาท!</span>
-      </div>
-
-      <p><strong>เข้าร่วมผ่านลิงก์ของฉัน รับทันที:</strong></p>
-      <p>✅ 100,000 KUBA โทเคนฟรี!</p>
-      <p>✅ แตะรายวัน รับเพิ่มทุกวัน</p>
-      <p>✅ โทเคนจริงบน Polygon Chain</p>
-
-      <div class="link-box" id="referralLink">
-        กำลังโหลดลิงก์...
-      </div>
-
-      <button class="btn btn-claim" onclick="Telegram.WebApp.openTelegramLink(document.getElementById('referralLink').innerText)">
-        🎉 รับ 100,000 KUBA ทันที!
-      </button>
-
-      <p><strong>แชร์ & ชวนเพื่อน รับเพิ่ม!</strong></p>
-      <button class="btn social-btn" onclick="shareTo('twitter')">📱 แชร์ไป X</button>
-      <button class="btn social-btn" onclick="shareTo('facebook')">📘 แชร์ไป Facebook</button>
-      <button class="btn social-btn" onclick="shareTo('whatsapp')">💬 แชร์ไป WhatsApp</button>
-      <button class="btn social-btn" onclick="shareTo('telegram')">✈️ แชร์ไป Telegram</button>
-
-      <button class="btn" style="background:#e74c3c; font-weight:900;" onclick="Telegram.WebApp.close()">กลับไปเล่นเกม</button>
-
-      <p class="footer">
-        🔥 จำกัดเวลา • แจกจริง 100,000 KUBA • โทเคน KUBA บน Polygon
-      </p>
-    </div>
+    <h2>สร้างโพสต์แนะนำสวย ๆ อัตโนมัติ</h2>
+    <p>เหมือน Hamster Kombat!</p>
+    <canvas id="banner" width="600" height="600"></canvas>
+    
+    <button class="btn" onclick="downloadImage()">ดาวน์โหลดรูปแชร์</button>
+    <button class="btn" style="background:#0088cc;color:#fff;" onclick="shareToX()">แชร์ไป X (Twitter)</button>
+    <button class="btn" style="background:#e74c3c;" onclick="Telegram.WebApp.close()">กลับ</button>
+    
+    <p class="footer">แชร์รูปนี้ → รับ 100,000 KUBA!</p>
   </div>
 
   <script>
     Telegram.WebApp.ready();
-    Telegram.WebApp.expand();
-
     const userId = Telegram.WebApp.initDataUnsafe?.user?.id || 'unknown';
-    const link = `https://t.me/kubaminer_bot?start=ref_${userId}`;
-    document.getElementById('referralLink').innerText = link;
+    const refLink = `https://t.me/kubaminer_bot?start=ref_${userId}`;
 
-    // เพิ่มประกายแสง
-    setInterval(() => {
-      const sparkle = document.createElement('div');
-      sparkle.className = 'sparkle';
-      sparkle.style.left = Math.random() * 100 + '%';
-      sparkle.style.top = Math.random() * 50 + '%';
-      document.body.appendChild(sparkle);
-      setTimeout(() => sparkle.remove(), 1500);
-    }, 300);
+    const canvas = document.getElementById('banner');
+    const ctx = canvas.getContext('2d');
 
-    function shareTo(platform) {
-      const message = `🚨 *แจกหนัก KUBAMINER - รับฟรี 100,000 KUBA!*
+    // โหลดรูปตัวการ์ตูน
+    const coinImg = new Image();
+    coinImg.crossOrigin = "anonymous";
+    coinImg.src = "https://i.ibb.co.com/0jX8s1L/kuba-coin.png"; // รูปหัวโต
 
-💎 *มูลค่าหลายหมื่นบาท • จำกัดเวลา!*
+    coinImg.onload = () => drawBanner();
 
-🔥 *เข้าร่วมตอนนี้ รับทันที:*
-✅ 100,000 KUBA โทเคนฟรี
-✅ แตะรายวัน รับเพิ่มทุกวัน
-✅ โทเคนจริงบน Polygon
+    function drawBanner() {
+      const gradient = ctx.createLinearGradient(0, 0, 600, 600);
+      gradient.addColorStop(0, '#1a0033');
+      gradient.addColorStop(1, '#0a0a1a');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, 600, 600);
 
-👇 *กดรับเลย:*
-${link}
+      // วงกลมทอง
+      ctx.beginPath();
+      ctx.arc(300, 220, 130, 0, Math.PI * 2);
+      ctx.fillStyle = '#FFD700';
+      ctx.shadowColor = '#FFA500';
+      ctx.shadowBlur = 40;
+      ctx.fill();
+      ctx.shadowBlur = 0;
 
-[🎉 รับ 100,000 KUBA ทันที!](${link})
+      // วาดรูปตัวการ์ตูน
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(300, 220, 115, 0, Math.PI * 2);
+      ctx.clip();
+      ctx.drawImage(coinImg, 300-115, 220-115, 230, 230);
+      ctx.restore();
 
-#KUBAMINER #Airdrop #KUBA #Crypto #แจกเหรียญฟรี #TapToEarn`;
+      // ข้อความ
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 48px "Orbitron", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('KUBA MINER', 300, 380);
 
-      let url;
-      switch (platform) {
-        case 'twitter': 
-          url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}`; 
-          break;
-        case 'facebook': 
-          url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(link)}&quote=${encodeURIComponent(message)}`; 
-          break;
-        case 'whatsapp': 
-          url = `https://wa.me/?text=${encodeURIComponent(message)}`; 
-          break;
-        case 'telegram': 
-          url = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(message)}`; 
-          break;
-      }
+      ctx.fillStyle = '#4ade80';
+      ctx.font = 'bold 56px "Orbitron", sans-serif';
+      ctx.fillText('100,000 KUBA', 300, 440);
+
+      ctx.fillStyle = '#fff';
+      ctx.font = '22px "Poppins", sans-serif';
+      ctx.fillText('FREE AIRDROP!', 300, 475);
+
+      ctx.fillStyle = '#FFD700';
+      ctx.font = 'bold 20px "Poppins", sans-serif';
+      ctx.fillText('Tap & Earn on Polygon', 300, 505);
+
+      // ลิงก์
+      ctx.fillStyle = '#aaa';
+      ctx.font = '18px monospace';
+      const shortLink = refLink.length > 40 ? refLink.slice(0,37)+'...' : refLink;
+      ctx.fillText(shortLink, 300, 545);
+
+      // โลโก้เล็ก
+      ctx.fillStyle = '#FFD700';
+      ctx.font = '16px sans-serif';
+      ctx.fillText('Powered by KUBA Miner', 300, 580);
+    }
+
+    function downloadImage() {
+      const link = document.createElement('a');
+      link.download = 'KUBA_Airdrop_100K.png';
+      link.href = canvas.toDataURL();
+      link.click();
+    }
+
+    function shareToX() {
+      const text = `KUBA MINER IS LIVE! 
+
+Tap to Earn 100,000 KUBA FREE! 
+
+  100,000 KUBA
+  Daily Rewards
+  Real Polygon Token
+
+${refLink}
+
+#KUBA #Airdrop #Crypto #TapToEarn`;
+      const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
       window.open(url, '_blank');
     }
   </script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Poppins:wght@600;800&display=swap" rel="stylesheet">
 </body>
 </html>
