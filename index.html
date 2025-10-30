@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>KUBAMINER Multi-Chain Hub</title>
+  <title>KUBAMINER</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.js"></script>
   <script src='//libtl.com/sdk.js' data-zone='10111635' data-sdk='show_10111635'></script>
@@ -15,20 +15,18 @@
     .topbar .left { color:#ffd700; }
     .topbar .right { color:#4ade80; text-align:right; }
     h1 { font-size:24px; margin:10px 0; font-weight:bold; }
+    .exchange-btn { background:#9c88ff; color:white; padding:12px; border-radius:12px; font-weight:bold; margin:10px auto; width:90%; }
     .bald { width:180px; height:180px; margin:20px auto; cursor:pointer; user-select:none; }
     .bald img { width:100%; height:100%; border-radius:50%; transition:0.2s; }
     .bald:active img { transform:scale(0.92); }
-    .stats { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:15px 0; font-size:13px; }
-    .stat { background:#1a1a2e; padding:8px; border-radius:8px; }
-    .stat-title { color:#aaa; font-size:11px; }
+    .stats { display:flex; justify-content:space-around; margin:15px 0; font-size:14px; }
+    .stat { background:#1a1a2e; padding:8px 12px; border-radius:8px; flex:1; margin:0 5px; }
     button { 
-      background:#ffd700; color:#000; border:none; padding:12px; 
+      background:#ffd700; color:#000; border:none; padding:12px 20px; 
       border-radius:12px; font-weight:bold; font-size:16px; margin:8px; width:90%;
       transition:0.2s;
     }
     button:active { transform:scale(0.98); }
-    .swap-btn { background:#9c88ff; color:white; }
-    .bridge-btn { background:#00d2ff; color:#000; }
     .upgrade-btn { background:#f39c12; color:white; }
     .refer-btn { background:#2ed573; color:#000; }
     .wallet-box { background:#1a1a2e; border:1px solid #FFD700; border-radius:12px; padding:12px; margin:10px 0; font-size:12px; word-break:break-all; }
@@ -36,69 +34,85 @@
     @keyframes fly { to { transform:translateY(-120px); opacity:0; } }
     .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:999; }
     .modal-content { background:#1a1a2e; margin:15% auto; padding:20px; width:85%; border-radius:16px; text-align:center; }
-    input, select { width:100%; padding:12px; margin:8px 0; border-radius:10px; border:1px solid #FFD700; background:#0f0f1a; color:#fff; font-size:16px; }
+    .balance-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:15px 0; }
+    .balance-item { background:#0f0f1a; border:1px solid #FFD700; border-radius:10px; padding:10px; font-size:14px; }
+    .balance-title { color:#aaa; font-size:12px; }
+    .swap-box { background:#1a1a2e; border:2px solid #FFD700; border-radius:16px; padding:15px; margin:15px 0; }
     .rate { font-size:18px; color:#FFD700; font-weight:bold; margin:10px 0; }
+    input, select { width:100%; padding:12px; margin:8px 0; border-radius:10px; border:1px solid #FFD700; background:#0f0f1a; color:#fff; font-size:16px; }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="topbar">
       <div class="left">Points: <span id="pointsDisplay">0</span></div>
-      <div class="right">KUBA: <span id="kubaDisplay">0</span></div>
+      <div class="right">Level: <span id="level">1</span></div>
     </div>
 
-    <h1>KUBAMINER HUB</h1>
+    <h1>KUBAMINER</h1>
+
+    <!-- Exchange Button (Above Cartoon) -->
+    <button class="exchange-btn" onclick="openExchange()">EXCHANGE</button>
+
+    <!-- Cartoon Head -->
     <div class="bald" id="baldHead">
-      <img id="baldImg" src="bald.png" alt="Bald Head" onerror="this.src='https://via.placeholder.com/300?text=Bald+Head'" />
+      <img id="baldImg" src="bald.png" alt="Tap to Earn" onerror="this.src='https://via.placeholder.com/300?text=TAP'" />
     </div>
 
-    <!-- Wallet Balances -->
+    <!-- Stats -->
     <div class="stats">
-      <div class="stat">
-        <div class="stat-title">POL Balance</div>
-        <div id="polBalance">0.00</div>
-      </div>
-      <div class="stat">
-        <div class="stat-title">KUBA Balance</div>
-        <div id="kubaBalance">0.00</div>
-      </div>
-      <div class="stat">
-        <div class="stat-title">TON Balance</div>
-        <div id="tonBalance">0.00</div>
-      </div>
-      <div class="stat">
-        <div class="stat-title">Level / Energy</div>
-        <div id="level">1</div>
-      </div>
+      <div class="stat">Energy: <span id="energy">100</span>/<span id="maxEnergy">100</span></div>
+      <div class="stat">Tap Power: <span id="tapPower">1</span></div>
     </div>
 
     <div class="wallet-box" id="walletAddress">Wallet: Loading...</div>
 
-    <!-- Exchange & Actions -->
-    <div style="background:#1a1a2e; border-radius:16px; padding:15px; margin:15px 0;">
-      <div class="rate">1 KUBA = 10 Points</div>
-      <button class="swap-btn" onclick="openSwap()">SWAP COINS</button>
-      <button class="bridge-btn" onclick="openBridge()">BRIDGE TON → KUBA</button>
-    </div>
-
+    <!-- Action Buttons -->
     <button class="upgrade-btn" onclick="upgradeCharacter()">Upgrade Level (<span id="upgradeCost">500</span> Pts)</button>
     <button class="refer-btn" onclick="openReferralAd()">Claim 10,000 KUBA Airdrop!</button>
-    <button onclick="copyAddress()" style="background:#5f27cd; color:white;">Copy Wallet</button>
+    <button onclick="copyAddress()" style="background:#5f27cd; color:white;">Copy Wallet Address</button>
   </div>
 
-  <!-- Swap Modal -->
-  <div id="swapModal" class="modal">
+  <!-- Exchange Modal -->
+  <div id="exchangeModal" class="modal">
     <div class="modal-content">
-      <h2>SWAP</h2>
-      <select id="fromToken" onchange="updateSwapPreview()">
-        <option value="POL">POL</option>
-        <option value="KUBA">KUBA</option>
-      </select>
-      <input type="number" id="swapAmount" placeholder="Amount" oninput="updateSwapPreview()">
-      <p>to <span id="toToken">KUBA</span></p>
-      <p>You get: <span id="swapOutput" style="color:#4ade80;">0</span></p>
-      <button onclick="confirmSwap()" style="background:#9c88ff; margin:10px;">SWAP (Pay Gas)</button>
-      <button onclick="closeSwap()" style="background:#e74c3c;">Cancel</button>
+      <h2>EXCHANGE HUB</h2>
+
+      <!-- Balances -->
+      <div class="balance-grid">
+        <div class="balance-item">
+          <div class="balance-title">POL Balance</div>
+          <div id="polBalance">0.00</div>
+        </div>
+        <div class="balance-item">
+          <div class="balance-title">KUBA Balance</div>
+          <div id="kubaBalance">0.00</div>
+        </div>
+        <div class="balance-item">
+          <div class="balance-title">TON Balance</div>
+          <div id="tonBalance">0.00</div>
+        </div>
+        <div class="balance-item">
+          <div class="balance-title">Game Points</div>
+          <div id="gamePoints">0</div>
+        </div>
+      </div>
+
+      <!-- Swap Section -->
+      <div class="swap-box">
+        <div class="rate">1 KUBA = 10 Points</div>
+        <select id="fromToken" onchange="updateSwapPreview()">
+          <option value="POL">POL</option>
+          <option value="KUBA">KUBA</option>
+        </select>
+        <input type="number" id="swapAmount" placeholder="Enter Amount" oninput="updateSwapPreview()">
+        <p>to <span id="toToken">KUBA</span></p>
+        <p>You will receive: <span id="swapOutput" style="color:#4ade80; font-weight:bold;">0</span></p>
+        <button onclick="confirmSwap()" style="background:#9c88ff; margin:10px;">SWAP NOW</button>
+      </div>
+
+      <button onclick="openBridge()" style="background:#00d2ff; color:#000; margin:10px;">BRIDGE TON → KUBA</button>
+      <button onclick="closeExchange()" style="background:#e74c3c; margin:10px;">Close</button>
     </div>
   </div>
 
@@ -106,9 +120,9 @@
   <div id="bridgeModal" class="modal">
     <div class="modal-content">
       <h2>BRIDGE TON → KUBA</h2>
-      <p>Send TON to:</p>
+      <p>Send TON to this address:</p>
       <div class="wallet-box">EQB7... (TON Bridge)</div>
-      <button onclick="copyTonBridge()" style="background:#00d2ff; color:#000;">Copy Address</button>
+      <button onclick="copyTonBridge()" style="background:#00d2ff; color:#000; margin:10px;">Copy Address</button>
       <button onclick="closeBridge()" style="background:#e74c3c;">Close</button>
     </div>
   </div>
@@ -131,7 +145,7 @@
       {"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"}
     ];
 
-    // Load Game
+    // Load / Save
     function loadGame() {
       points = parseFloat(localStorage.getItem('kuba_points')) || 0;
       level = parseInt(localStorage.getItem('kuba_level')) || 1;
@@ -175,37 +189,45 @@
         kubaBalance = parseFloat(ethers.utils.formatUnits(bal, 18)).toFixed(2);
       } catch { kubaBalance = '0.00'; }
 
-      tonBalance = '0.00'; // TON SDK อนาคต
-      updateUI();
+      tonBalance = '0.00'; // Future TON SDK
+      updateExchangeBalances();
     }
 
-    // UI Update
+    // Update UI
     function updateUI() {
       document.getElementById('pointsDisplay').innerText = points.toLocaleString();
-      document.getElementById('kubaDisplay').innerText = kubaBalance;
-      document.getElementById('polBalance').innerText = polBalance;
-      document.getElementById('kubaBalance').innerText = kubaBalance;
-      document.getElementById('tonBalance').innerText = tonBalance;
       document.getElementById('level').innerText = level;
-      document.getElementById('energy').innerText = energy + '/' + maxEnergy;
+      document.getElementById('energy').innerText = energy;
+      document.getElementById('maxEnergy').innerText = maxEnergy;
+      document.getElementById('tapPower').innerText = tapPower;
       const nextCost = level >= MAX_LEVEL ? 'MAX' : (level === 99 ? 1500000 : 500 + level * 15000).toLocaleString();
       document.getElementById('upgradeCost').innerText = nextCost;
     }
 
+    function updateExchangeBalances() {
+      document.getElementById('polBalance').innerText = polBalance;
+      document.getElementById('kubaBalance').innerText = kubaBalance;
+      document.getElementById('tonBalance').innerText = tonBalance;
+      document.getElementById('gamePoints').innerText = points.toLocaleString();
+    }
+
     // Tap
     document.getElementById('baldHead').addEventListener('click', () => {
-      if (energy <= 0) return;
+      if (energy <= 0) {
+        Telegram.WebApp.HapticFeedback.notificationOccurred('error');
+        return;
+      }
       energy--;
       points += tapPower;
       createParticle('+' + tapPower);
       saveGame();
       updateUI();
-      if (energy === 0) setTimeout(regenerateEnergy, 1000);
+      if (energy === 0) regenerateEnergy();
     });
 
     // Upgrade
     function upgradeCharacter() {
-      if (level >= MAX_LEVEL) { alert('MAX LEVEL!'); return; }
+      if (level >= MAX_LEVEL) { alert('MAX LEVEL REACHED!'); return; }
       const cost = level === 99 ? 1500000 : 500 + level * 15000;
       if (points < cost) { alert(`Need ${cost.toLocaleString()} Points!`); return; }
       points -= cost;
@@ -214,32 +236,35 @@
       maxEnergy = level * 100;
       saveGame();
       updateUI();
-      alert(`Level ${level} | Tap: ${tapPower} | Energy: ${maxEnergy}`);
+      alert(`Level Up! Level ${level}`);
     }
 
-    // Swap
-    function openSwap() {
-      document.getElementById('swapModal').style.display = 'block';
+    // Exchange Modal
+    function openExchange() {
+      document.getElementById('exchangeModal').style.display = 'block';
+      updateExchangeBalances();
       updateSwapPreview();
     }
-    function closeSwap() { document.getElementById('swapModal').style.display = 'none'; }
+    function closeExchange() { document.getElementById('exchangeModal').style.display = 'none'; }
+
+    // Swap
     function updateSwapPreview() {
       const from = document.getElementById('fromToken').value;
-      const to = from === 'POL' ? 'KUBA' : 'POL';
+      const to = from === 'POL' ? 'KUBA' : 'Points';
       document.getElementById('toToken').innerText = to;
       const amt = parseFloat(document.getElementById('swapAmount').value) || 0;
       const rate = from === 'POL' ? 0.1 : 10;
       document.getElementById('swapOutput').innerText = (amt * rate).toFixed(4);
     }
     function confirmSwap() {
-      alert('Swap อยู่ระหว่างพัฒนา (ใช้ DEX จริงในอนาคต)');
-      closeSwap();
+      alert('Swap feature coming soon!');
+      closeExchange();
     }
 
     // Bridge
     function openBridge() { document.getElementById('bridgeModal').style.display = 'block'; }
     function closeBridge() { document.getElementById('bridgeModal').style.display = 'none'; }
-    function copyTonBridge() { alert('TON Bridge: EQB7...'); }
+    function copyTonBridge() { alert('TON Bridge Address copied!'); }
 
     // Referral
     function openReferralAd() {
@@ -264,7 +289,7 @@
     }
     function copyAddress() {
       navigator.clipboard.writeText(wallet.address);
-      alert('Copied!');
+      alert('Wallet address copied!');
     }
 
     // Start
