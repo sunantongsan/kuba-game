@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>KUBA Bald Tap</title>
+  <title>KUBAMINER Multi-Chain Hub</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.js"></script>
   <script src='//libtl.com/sdk.js' data-zone='10111635' data-sdk='show_10111635'></script>
@@ -18,82 +18,98 @@
     .bald { width:180px; height:180px; margin:20px auto; cursor:pointer; user-select:none; }
     .bald img { width:100%; height:100%; border-radius:50%; transition:0.2s; }
     .bald:active img { transform:scale(0.92); }
-    .stats { display:flex; justify-content:space-around; margin:15px 0; font-size:14px; }
-    .stat { background:#1a1a2e; padding:8px 12px; border-radius:8px; flex:1; margin:0 5px; }
+    .stats { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:15px 0; font-size:13px; }
+    .stat { background:#1a1a2e; padding:8px; border-radius:8px; }
+    .stat-title { color:#aaa; font-size:11px; }
     button { 
-      background:#ffd700; color:#000; border:none; padding:12px 20px; 
+      background:#ffd700; color:#000; border:none; padding:12px; 
       border-radius:12px; font-weight:bold; font-size:16px; margin:8px; width:90%;
       transition:0.2s;
     }
     button:active { transform:scale(0.98); }
-    .ad-points { background:#ff4757; color:white; }
-    .ad-energy { background:#3498db; color:white; }
-    .exchange-btn { background:#9c88ff; color:white; }
+    .swap-btn { background:#9c88ff; color:white; }
+    .bridge-btn { background:#00d2ff; color:#000; }
     .upgrade-btn { background:#f39c12; color:white; }
     .refer-btn { background:#2ed573; color:#000; }
-    .transfer-btn { background:#e74c3c; color:white; }
-    .wallet { font-size:11px; word-break:break-all; margin:10px; color:#aaa; padding:8px; background:#1a1a2e; border-radius:8px; }
+    .wallet-box { background:#1a1a2e; border:1px solid #FFD700; border-radius:12px; padding:12px; margin:10px 0; font-size:12px; word-break:break-all; }
     .particle { position:absolute; font-size:26px; pointer-events:none; animation:fly 1s ease-out forwards; font-weight:bold; }
     @keyframes fly { to { transform:translateY(-120px); opacity:0; } }
     .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:999; }
-    .modal-content { background:#1a1a2e; margin:20% auto; padding:20px; width:80%; border-radius:16px; text-align:center; }
-    input { width:100%; padding:12px; margin:10px 0; border-radius:10px; border:1px solid #FFD700; background:#0f0f1a; color:#fff; font-size:16px; text-align:center; }
+    .modal-content { background:#1a1a2e; margin:15% auto; padding:20px; width:85%; border-radius:16px; text-align:center; }
+    input, select { width:100%; padding:12px; margin:8px 0; border-radius:10px; border:1px solid #FFD700; background:#0f0f1a; color:#fff; font-size:16px; }
+    .rate { font-size:18px; color:#FFD700; font-weight:bold; margin:10px 0; }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="topbar">
       <div class="left">Points: <span id="pointsDisplay">0</span></div>
-      <div class="right">KUBA: <span id="kubaDisplay">0</span> (<span id="kubaValue">$0.00</span>)</div>
+      <div class="right">KUBA: <span id="kubaDisplay">0</span></div>
     </div>
 
-    <h1>KUBAMINER</h1>
+    <h1>KUBAMINER HUB</h1>
     <div class="bald" id="baldHead">
       <img id="baldImg" src="bald.png" alt="Bald Head" onerror="this.src='https://via.placeholder.com/300?text=Bald+Head'" />
     </div>
 
+    <!-- Wallet Balances -->
     <div class="stats">
-      <div class="stat">Energy: <span id="energy">100</span>/<span id="maxEnergy">100</span></div>
-      <div class="stat">Level: <span id="level">1</span>/100</div>
-    </div>
-    <div class="wallet" id="walletAddress">Creating wallet...</div>
-
-    <button class="ad-points" onclick="showAdForPoints()">Watch Ad → +100 Points</button>
-    <button class="ad-energy" onclick="showAdForEnergy()">Watch Ad → +50 Energy</button>
-    <button class="refer-btn" onclick="openReferralAd()">Claim 10,000 KUBA Airdrop!</button>
-    <button class="exchange-btn" onclick="openExchange()">Exchange Points → KUBA</button>
-    <button class="upgrade-btn" onclick="upgradeCharacter()">Upgrade Level (<span id="upgradeCost">500</span> Points)</button>
-    <button class="transfer-btn" onclick="openTransfer()">Transfer KUBA</button>
-    <button onclick="copyAddress()">Copy Wallet Address</button>
-    <button onclick="exportKey()" style="background:#5f27cd; color:white;">Export Private Key</button>
-  </div>
-
-  <!-- Modal Exchange -->
-  <div id="exchangeModal" class="modal">
-    <div class="modal-content">
-      <h2>Exchange Points → KUBA</h2>
-      <p style="color:#aaa; font-size:14px;">Rate: 10 Points = 1 KUBA</p>
-      <p>Enter KUBA to receive:</p>
-      <input type="number" id="kubaAmount" placeholder="e.g. 10000" min="10000">
-      <p>Points required: <span id="requiredPoints" style="color:#FFD700; font-weight:bold;">0</span></p>
-      <div style="display:flex; gap:10px; margin:15px 0;">
-        <button onclick="setMaxKUBA()" style="flex:1; background:#FFA500; color:#000; padding:10px; border-radius:10px; font-weight:bold;">MAX</button>
-        <button onclick="closeExchange()" style="flex:1; background:#e74c3c; color:white; padding:10px; border-radius:10px;">Cancel</button>
+      <div class="stat">
+        <div class="stat-title">POL Balance</div>
+        <div id="polBalance">0.00</div>
       </div>
-      <button id="confirmBtn" onclick="confirmExchange()" disabled style="width:100%; background:#555; color:#aaa; padding:14px; border-radius:12px; font-weight:bold; margin-top:10px;">
-        Confirm Exchange
-      </button>
+      <div class="stat">
+        <div class="stat-title">KUBA Balance</div>
+        <div id="kubaBalance">0.00</div>
+      </div>
+      <div class="stat">
+        <div class="stat-title">TON Balance</div>
+        <div id="tonBalance">0.00</div>
+      </div>
+      <div class="stat">
+        <div class="stat-title">Level / Energy</div>
+        <div id="level">1</div>
+      </div>
+    </div>
+
+    <div class="wallet-box" id="walletAddress">Wallet: Loading...</div>
+
+    <!-- Exchange & Actions -->
+    <div style="background:#1a1a2e; border-radius:16px; padding:15px; margin:15px 0;">
+      <div class="rate">1 KUBA = 10 Points</div>
+      <button class="swap-btn" onclick="openSwap()">SWAP COINS</button>
+      <button class="bridge-btn" onclick="openBridge()">BRIDGE TON → KUBA</button>
+    </div>
+
+    <button class="upgrade-btn" onclick="upgradeCharacter()">Upgrade Level (<span id="upgradeCost">500</span> Pts)</button>
+    <button class="refer-btn" onclick="openReferralAd()">Claim 10,000 KUBA Airdrop!</button>
+    <button onclick="copyAddress()" style="background:#5f27cd; color:white;">Copy Wallet</button>
+  </div>
+
+  <!-- Swap Modal -->
+  <div id="swapModal" class="modal">
+    <div class="modal-content">
+      <h2>SWAP</h2>
+      <select id="fromToken" onchange="updateSwapPreview()">
+        <option value="POL">POL</option>
+        <option value="KUBA">KUBA</option>
+      </select>
+      <input type="number" id="swapAmount" placeholder="Amount" oninput="updateSwapPreview()">
+      <p>to <span id="toToken">KUBA</span></p>
+      <p>You get: <span id="swapOutput" style="color:#4ade80;">0</span></p>
+      <button onclick="confirmSwap()" style="background:#9c88ff; margin:10px;">SWAP (Pay Gas)</button>
+      <button onclick="closeSwap()" style="background:#e74c3c;">Cancel</button>
     </div>
   </div>
 
-  <!-- Modal Transfer -->
-  <div id="transferModal" class="modal">
+  <!-- Bridge Modal -->
+  <div id="bridgeModal" class="modal">
     <div class="modal-content">
-      <h2>Transfer KUBA</h2>
-      <p>To: <input id="transferTo" type="text" placeholder="Recipient Address" style="width:100%; padding:10px; margin:10px; border-radius:8px;"></p>
-      <p>Amount: <input id="transferAmount" type="number" placeholder="KUBA Amount" style="width:100%; padding:10px; margin:10px; border-radius:8px;"></p>
-      <button onclick="confirmTransfer()" style="background:#4ade80; margin:10px;">Transfer</button>
-      <button onclick="closeTransfer()" style="background:#e74c3c;">Cancel</button>
+      <h2>BRIDGE TON → KUBA</h2>
+      <p>Send TON to:</p>
+      <div class="wallet-box">EQB7... (TON Bridge)</div>
+      <button onclick="copyTonBridge()" style="background:#00d2ff; color:#000;">Copy Address</button>
+      <button onclick="closeBridge()" style="background:#e74c3c;">Close</button>
     </div>
   </div>
 
@@ -101,267 +117,155 @@
     // Game Variables
     let points = 0;
     let kubaBalance = 0;
+    let polBalance = 0;
+    let tonBalance = 0;
     let energy = 100;
     let maxEnergy = 100;
     let tapPower = 1;
     let level = 1;
     const MAX_LEVEL = 100;
-    let lastAdTime = 0;
-    const AD_COOLDOWN = 3 * 60 * 1000;
     let wallet = null;
     let provider = null;
-    let kubaPrice = 0;
     const CONTRACT_ADDRESS = '0x8eFc217Bb56e9081455171002F80b84737cB4468';
     const ABI = [ 
-      {"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"}, 
-      {"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"mint","outputs":[],"stateMutability":"nonpayable","type":"function"},
-      {"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transfer","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"}
+      {"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"}
     ];
 
-    // Load/Save Game
+    // Load Game
     function loadGame() {
       points = parseFloat(localStorage.getItem('kuba_points')) || 0;
-      kubaBalance = parseFloat(localStorage.getItem('kuba_balance')) || 0;
       level = parseInt(localStorage.getItem('kuba_level')) || 1;
-      updateLevelStats();
+      tapPower = level;
+      maxEnergy = level * 100;
+      energy = Math.min(energy, maxEnergy);
       updateUI();
     }
     function saveGame() {
       localStorage.setItem('kuba_points', points);
-      localStorage.setItem('kuba_balance', kubaBalance);
       localStorage.setItem('kuba_level', level);
-    }
-
-    // Update Level Stats
-    function updateLevelStats() {
-      tapPower = level;
-      maxEnergy = level * 100;
-      energy = Math.min(energy, maxEnergy);
     }
 
     // Init Wallet
     async function initWallet() {
       loadGame();
-      let privateKey = localStorage.getItem('kuba_private_key');
-      if (!privateKey) {
+      let pk = localStorage.getItem('kuba_private_key');
+      if (!pk) {
         wallet = ethers.Wallet.createRandom();
-        privateKey = wallet.privateKey;
-        localStorage.setItem('kuba_private_key', privateKey);
+        localStorage.setItem('kuba_private_key', wallet.privateKey);
         alert('Wallet created! Backup your Private Key.');
       } else {
-        wallet = new ethers.Wallet(privateKey);
+        wallet = new ethers.Wallet(pk);
       }
-      document.getElementById('walletAddress').innerText = 'Wallet: ' + wallet.address.slice(0, 8) + '...' + wallet.address.slice(-6);
+      document.getElementById('walletAddress').innerText = 'Wallet: ' + wallet.address.slice(0,8) + '...' + wallet.address.slice(-6);
       provider = new ethers.providers.JsonRpcProvider('https://polygon-rpc.com');
-      await loadKubaFromChain();
-      fetchKubaPrice();
+      loadBalances();
+      setInterval(loadBalances, 10000);
     }
 
-    // Load KUBA from Chain
-    async function loadKubaFromChain() {
-      if (!wallet) return;
-      const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
+    // Load Balances
+    async function loadBalances() {
       try {
-        const balance = await contract.balanceOf(wallet.address);
-        const chainKuba = parseFloat(ethers.utils.formatUnits(balance, 18));
-        if (chainKuba > kubaBalance) kubaBalance = chainKuba;
-        saveGame();
-        updateUI();
-      } catch (e) { console.log('Chain load failed', e); }
-    }
+        const bal = await provider.getBalance(wallet.address);
+        polBalance = parseFloat(ethers.utils.formatEther(bal)).toFixed(4);
+      } catch { polBalance = '0.00'; }
 
-    // Fetch Price
-    async function fetchKubaPrice() {
       try {
-        const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=kuba&vs_currencies=usd');
-        const data = await res.json();
-        kubaPrice = data.kuba?.usd || 0;
-        updateUI();
-      } catch (e) { kubaPrice = 0; }
-    }
-    setInterval(fetchKubaPrice, 30000);
+        const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
+        const bal = await contract.balanceOf(wallet.address);
+        kubaBalance = parseFloat(ethers.utils.formatUnits(bal, 18)).toFixed(2);
+      } catch { kubaBalance = '0.00'; }
 
-    // Update Bald Color
-    function updateBaldColor() {
-      const img = document.getElementById('baldImg');
-      const colors = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57', '#FF9FF3', '#54A0FF'];
-      img.style.filter = `hue-rotate(${level * 45}deg) drop-shadow(0 0 15px ${colors[level % colors.length]})`;
-    }
-
-    // Tap
-    document.getElementById('baldHead').addEventListener('click', () => {
-      if (energy <= 0) {
-        Telegram.WebApp.HapticFeedback.notificationOccurred('error');
-        return;
-      }
-      energy -= 1;
-      points += tapPower;
-      createParticle('+' + tapPower);
-      Telegram.WebApp.HapticFeedback.impactOccurred('medium');
+      tonBalance = '0.00'; // TON SDK อนาคต
       updateUI();
-      saveGame();
-      if (energy === 0) regenerateEnergy();
-    });
-
-    // Watch Ad for Points
-    function showAdForPoints() {
-      if (Date.now() - lastAdTime < AD_COOLDOWN) {
-        alert(`Wait ${Math.ceil((AD_COOLDOWN - (Date.now() - lastAdTime)) / 60000)} min`);
-        return;
-      }
-      show_10111635().then(() => {
-        points += 100;
-        lastAdTime = Date.now();
-        updateUI();
-        saveGame();
-        Telegram.WebApp.HapticFeedback.notificationOccurred('success');
-        alert('+100 Points!');
-      }).catch(() => alert('Ad failed'));
-    }
-
-    // Watch Ad for Energy
-    function showAdForEnergy() {
-      if (Date.now() - lastAdTime < AD_COOLDOWN) {
-        alert(`Wait ${Math.ceil((AD_COOLDOWN - (Date.now() - lastAdTime)) / 60000)} min`);
-        return;
-      }
-      show_10111635().then(() => {
-        energy = Math.min(energy + 50, maxEnergy);
-        lastAdTime = Date.now();
-        updateUI();
-        Telegram.WebApp.HapticFeedback.notificationOccurred('success');
-        alert('+50 Energy!');
-      }).catch(() => alert('Ad failed'));
-    }
-
-    // --- ระบบ Referral ---
-    function openReferralAd() {
-      window.open('https://sunantongsan.github.io/kuba-game/share-ad.html', '_blank');
-    }
-
-    // --- ระบบ Upgrade Level ใหม่ ---
-    function upgradeCharacter() {
-      if (level >= MAX_LEVEL) {
-        alert('MAX LEVEL REACHED!');
-        return;
-      }
-
-      const cost = level === 99 ? 1500000 : 500 + level * 15000;
-      if (points < cost) {
-        alert(`Need ${cost.toLocaleString()} Points!`);
-        return;
-      }
-
-      points -= cost;
-      level += 1;
-      updateLevelStats();
-      saveGame();
-      updateUI();
-      updateBaldColor();
-      alert(`Level Up! Level ${level}\nTap Power: ${tapPower}\nMax Energy: ${maxEnergy}`);
-    }
-
-    // --- ระบบ Exchange ---
-    function openExchange() {
-      if (points < 100000) {
-        alert(`Need at least 100,000 Points!`);
-        return;
-      }
-      document.getElementById('exchangeModal').style.display = 'block';
-      updateExchangePreview();
-    }
-    function closeExchange() {
-      document.getElementById('exchangeModal').style.display = 'none';
-      document.getElementById('kubaAmount').value = '';
-      updateExchangePreview();
-    }
-    function updateExchangePreview() {
-      const kuba = parseFloat(document.getElementById('kubaAmount').value) || 0;
-      const pointsNeeded = kuba * 10;
-      document.getElementById('requiredPoints').innerText = pointsNeeded.toLocaleString();
-      const btn = document.getElementById('confirmBtn');
-      if (kuba >= 10000 && pointsNeeded <= points && pointsNeeded >= 100000) {
-        btn.disabled = false;
-        btn.style.background = '#4ade80';
-        btn.style.color = 'white';
-      } else {
-        btn.disabled = true;
-        btn.style.background = '#555';
-        btn.style.color = '#aaa';
-      }
-    }
-    function setMaxKUBA() {
-      const maxKUBA = Math.floor(points / 10);
-      if (maxKUBA < 10000) {
-        alert(`Need 100,000 Points!`);
-        return;
-      }
-      document.getElementById('kubaAmount').value = maxKUBA;
-      updateExchangePreview();
-    }
-    function confirmExchange() {
-      const kuba = parseFloat(document.getElementById('kubaAmount').value);
-      const pointsNeeded = kuba * 10;
-      if (points < pointsNeeded || pointsNeeded < 100000) return;
-      points -= pointsNeeded;
-      kubaBalance += kuba;
-      saveGame();
-      updateUI();
-      saveKubaToChain();
-      closeExchange();
-      alert(`+${kuba.toFixed(2)} KUBA`);
-    }
-    document.getElementById('kubaAmount').addEventListener('input', updateExchangePreview);
-
-    // Transfer
-    function openTransfer() { if (kubaBalance <= 0) { alert('No KUBA!'); return; } document.getElementById('transferModal').style.display = 'block'; }
-    function closeTransfer() { document.getElementById('transferModal').style.display = 'none'; }
-    async function confirmTransfer() {
-      const to = document.getElementById('transferTo').value;
-      const amount = parseFloat(document.getElementById('transferAmount').value);
-      if (!to || amount <= 0 || amount > kubaBalance) { alert('Invalid!'); return; }
-      try {
-        const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, wallet.connect(provider));
-        const tx = await contract.transfer(to, ethers.utils.parseUnits(amount.toString(), 18));
-        await tx.wait();
-        kubaBalance -= amount; saveGame(); updateUI(); closeTransfer(); alert('Sent!');
-      } catch (e) { alert('Failed: ' + e.message); }
-    }
-
-    // Save KUBA to Chain
-    async function saveKubaToChain() {
-      if (!wallet || kubaBalance === 0) return;
-      const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, wallet.connect(provider));
-      try {
-        const tx = await contract.mint(wallet.address, ethers.utils.parseUnits(kubaBalance.toString(), 18));
-        await tx.wait(); kubaBalance = 0; saveGame(); await loadKubaFromChain();
-      } catch (e) { console.log('Mint failed', e); }
     }
 
     // UI Update
     function updateUI() {
       document.getElementById('pointsDisplay').innerText = points.toLocaleString();
-      document.getElementById('kubaDisplay').innerText = kubaBalance.toFixed(2);
-      document.getElementById('kubaValue').innerText = `$${(kubaBalance * kubaPrice).toFixed(2)}`;
-      document.getElementById('energy').innerText = energy;
-      document.getElementById('maxEnergy').innerText = maxEnergy;
+      document.getElementById('kubaDisplay').innerText = kubaBalance;
+      document.getElementById('polBalance').innerText = polBalance;
+      document.getElementById('kubaBalance').innerText = kubaBalance;
+      document.getElementById('tonBalance').innerText = tonBalance;
       document.getElementById('level').innerText = level;
+      document.getElementById('energy').innerText = energy + '/' + maxEnergy;
       const nextCost = level >= MAX_LEVEL ? 'MAX' : (level === 99 ? 1500000 : 500 + level * 15000).toLocaleString();
       document.getElementById('upgradeCost').innerText = nextCost;
-      updateBaldColor();
+    }
+
+    // Tap
+    document.getElementById('baldHead').addEventListener('click', () => {
+      if (energy <= 0) return;
+      energy--;
+      points += tapPower;
+      createParticle('+' + tapPower);
+      saveGame();
+      updateUI();
+      if (energy === 0) setTimeout(regenerateEnergy, 1000);
+    });
+
+    // Upgrade
+    function upgradeCharacter() {
+      if (level >= MAX_LEVEL) { alert('MAX LEVEL!'); return; }
+      const cost = level === 99 ? 1500000 : 500 + level * 15000;
+      if (points < cost) { alert(`Need ${cost.toLocaleString()} Points!`); return; }
+      points -= cost;
+      level++;
+      tapPower = level;
+      maxEnergy = level * 100;
+      saveGame();
+      updateUI();
+      alert(`Level ${level} | Tap: ${tapPower} | Energy: ${maxEnergy}`);
+    }
+
+    // Swap
+    function openSwap() {
+      document.getElementById('swapModal').style.display = 'block';
+      updateSwapPreview();
+    }
+    function closeSwap() { document.getElementById('swapModal').style.display = 'none'; }
+    function updateSwapPreview() {
+      const from = document.getElementById('fromToken').value;
+      const to = from === 'POL' ? 'KUBA' : 'POL';
+      document.getElementById('toToken').innerText = to;
+      const amt = parseFloat(document.getElementById('swapAmount').value) || 0;
+      const rate = from === 'POL' ? 0.1 : 10;
+      document.getElementById('swapOutput').innerText = (amt * rate).toFixed(4);
+    }
+    function confirmSwap() {
+      alert('Swap อยู่ระหว่างพัฒนา (ใช้ DEX จริงในอนาคต)');
+      closeSwap();
+    }
+
+    // Bridge
+    function openBridge() { document.getElementById('bridgeModal').style.display = 'block'; }
+    function closeBridge() { document.getElementById('bridgeModal').style.display = 'none'; }
+    function copyTonBridge() { alert('TON Bridge: EQB7...'); }
+
+    // Referral
+    function openReferralAd() {
+      window.open('https://sunantongsan.github.io/kuba-game/share-ad.html', '_blank');
     }
 
     // Utils
     function createParticle(text) {
-      const p = document.createElement('div'); p.className = 'particle'; p.innerText = text;
-      p.style.left = Math.random() * 80 + 10 + '%'; p.style.top = '40%'; document.body.appendChild(p);
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.innerText = text;
+      p.style.left = Math.random() * 80 + 10 + '%';
+      p.style.top = '40%';
+      document.body.appendChild(p);
       setTimeout(() => p.remove(), 1000);
     }
     function regenerateEnergy() {
-      const interval = setInterval(() => { if (energy < maxEnergy) { energy += 1; updateUI(); } else clearInterval(interval); }, 1000);
+      const interval = setInterval(() => {
+        if (energy < maxEnergy) { energy++; updateUI(); }
+        else clearInterval(interval);
+      }, 1000);
     }
-    function copyAddress() { navigator.clipboard.writeText(wallet.address); alert('Copied!'); }
-    function exportKey() { alert('Private Key:\n' + wallet.privateKey); }
+    function copyAddress() {
+      navigator.clipboard.writeText(wallet.address);
+      alert('Copied!');
+    }
 
     // Start
     Telegram.WebApp.ready();
