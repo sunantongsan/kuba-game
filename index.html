@@ -11,126 +11,133 @@
     * { margin:0; padding:0; box-sizing:border-box; }
     body { background:#0f0f1a; color:#fff; font-family:Arial, sans-serif; text-align:center; padding:10px; overflow:hidden; }
     .container { max-width:400px; margin:auto; }
-    .topbar { display:flex; justify-content:space-between; background:#1a1a2e; padding:10px 15px; border-radius:12px; margin-bottom:15px; font-size:14px; font-weight:bold; }
-    .topbar .left { color:#ffd700; }
-    .topbar .right { color:#4ade80; text-align:right; }
-    h1 { font-size:24px; margin:10px 0; font-weight:bold; }
-    .exchange-btn { background:#9c88ff; color:white; padding:12px; border-radius:12px; font-weight:bold; margin:10px auto; width:90%; }
-    .bald { width:180px; height:180px; margin:20px auto; cursor:pointer; user-select:none; }
-    .bald img { width:100%; height:100%; border-radius:50%; transition:0.2s; }
-    .bald:active img { transform:scale(0.92); }
-    .stats { display:flex; justify-content:space-around; margin:15px 0; font-size:14px; }
-    .stat { background:#1a1a2e; padding:8px 12px; border-radius:8px; flex:1; margin:0 5px; }
-    button { 
-      background:#ffd700; color:#000; border:none; padding:12px 20px; 
-      border-radius:12px; font-weight:bold; font-size:16px; margin:8px; width:90%;
-      transition:0.2s;
+    .topbar { display:flex; justify-content:space-between; padding:15px 0; font-weight:bold; }
+    .topbar .left { color:#ffd700; font-size:16px; }
+    .topbar .right { color:#4ade80; font-size:16px; }
+    h1 { font-size:28px; margin:15px 0; font-weight:bold; color:#ffd700; text-shadow:0 0 8px #ffd700; }
+    
+    button {
+      background:linear-gradient(135deg, #ffd700, #f39c12); color:#000; border:none; 
+      padding:14px; border-radius:16px; font-weight:bold; font-size:16px; 
+      margin:10px auto; width:92%; box-shadow:0 4px 10px rgba(255,215,0,0.3);
+      transition:0.2s; display:block;
     }
     button:active { transform:scale(0.98); }
-    .upgrade-btn { background:#f39c12; color:white; }
-    .refer-btn { background:#2ed573; color:#000; }
-    .wallet-box { background:#1a1a2e; border:1px solid #FFD700; border-radius:12px; padding:12px; margin:10px 0; font-size:12px; word-break:break-all; }
-    .particle { position:absolute; font-size:26px; pointer-events:none; animation:fly 1s ease-out forwards; font-weight:bold; }
+    .exchange-btn { background:linear-gradient(135deg, #9c88ff, #6c5ce7); color:white; }
+    .reward-btn { background:linear-gradient(135deg, #ff6b6b, #ee5a52); color:white; }
+    .upgrade-btn { background:linear-gradient(135deg, #f39c12, #e67e22); color:white; }
+    .refer-btn { background:linear-gradient(135deg, #2ed573, #27ae60); color:white; }
+    .copy-btn { background:linear-gradient(135deg, #5f27cd, #4834d4); color:white; font-size:14px; }
+
+    .info { font-size:14px; margin:8px 0; color:#aaa; }
+    .highlight { color:#ffd700; font-weight:bold; }
+    .energy-text { color:#4ade80; font-weight:bold; }
+
+    .bald { width:180px; height:180px; margin:25px auto; cursor:pointer; user-select:none; }
+    .bald img { width:100%; height:100%; border-radius:50%; transition:0.2s; box-shadow:0 0 20px rgba(255,215,0,0.4); }
+    .bald:active img { transform:scale(0.92); }
+
+    .particle { position:absolute; font-size:26px; pointer-events:none; animation:fly 1s ease-out forwards; font-weight:bold; color:#ffd700; }
     @keyframes fly { to { transform:translateY(-120px); opacity:0; } }
+
     .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:999; overflow-y:auto; }
-    .modal-content { background:#1a1a2e; margin:5% auto; padding:20px; width:90%; border-radius:16px; text-align:center; max-width:400px; }
-    .swap-card { background:#0f0f1a; border-radius:16px; padding:20px; margin:15px 0; }
-    .swap-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; }
-    .swap-header h3 { font-size:18px; }
-    .token-input { background:#1a1a2e; border-radius:12px; padding:15px; margin:8px 0; display:flex; justify-content:space-between; align-items:center; }
+    .modal-content { background:#1a1a2e; margin:5% auto; padding:20px; width:90%; border-radius:20px; text-align:center; max-width:400px; }
+    .swap-card { background:#0f0f1a; border-radius:16px; padding:20px; margin:15px 0; border:2px solid #ffd700; }
+    .token-input { background:#1a1a2e; border-radius:12px; padding:15px; margin:8px 0; display:flex; justify-content:space-between; align-items:center; cursor:pointer; }
     .token-input img { width:28px; height:28px; border-radius:50%; margin-right:10px; }
     .token-input input { background:none; border:none; color:#fff; font-size:20px; text-align:right; width:60%; }
-    .token-balance { font-size:12px; color:#aaa; }
-    .swap-arrow { font-size:24px; color:#aaa; margin:10px auto; }
-    .swap-info { font-size:13px; color:#aaa; margin:15px 0; text-align:left; }
+    .swap-arrow { font-size:24px; color:#ffd700; margin:10px auto; }
+    .swap-info { font-size:14px; color:#aaa; margin:15px 0; text-align:left; }
     .swap-info div { display:flex; justify-content:space-between; margin:4px 0; }
-    .price-impact { color:#ff6b6b; }
-    .dev-fee { color:#ffd700; }
     .swap-btn { background:#4ade80; color:white; font-weight:bold; padding:16px; border-radius:12px; margin:15px 0; font-size:18px; }
-    .swap-btn:disabled { background:#555; cursor:not-allowed; }
-    .settings-btn { background:#333; color:#aaa; padding:8px 12px; border-radius:8px; font-size:12px; }
+    .swap-btn:disabled { background:#555; }
+    .token-list { background:#1a1a2e; border-radius:12px; padding:10px; margin:10px 0; max-height:200px; overflow-y:auto; }
+    .token-item { display:flex; align-items:center; padding:12px; cursor:pointer; border-bottom:1px solid #333; font-weight:bold; }
+    .token-item img { width:24px; height:24px; border-radius:50%; margin-right:10px; }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="topbar">
-      <div class="left">Points: <span id="pointsDisplay">0</span></div>
-      <div class="right">Level: <span id="level">1</span></div>
+      <div class="left">Points: <span class="highlight" id="pointsDisplay">0</span></div>
+      <div class="right">Level: <span class="highlight" id="level">1</span></div>
     </div>
 
     <h1>KUBAMINER</h1>
 
     <button class="exchange-btn" onclick="openExchange()">SWAP HUB</button>
+    <button class="reward-btn" id="rewardButton" onclick="claimReward()">รางวัล</button>
+    <div id="rewardCooldown" class="info">พร้อมใช้งาน</div>
 
     <div class="bald" id="baldHead">
       <img id="baldImg" src="bald.png" alt="Tap" onerror="this.src='https://via.placeholder.com/300?text=TAP'" />
     </div>
 
-    <div class="stats">
-      <div class="stat">Energy: <span id="energy">100</span>/<span id="maxEnergy">100</span></div>
-      <div class="stat">Tap: <span id="tapPower">1</span></div>
+    <div class="info">
+      พลังงาน: <span class="energy-text" id="energy">100</span> / <span id="maxEnergy">100</span>
+    </div>
+    <div class="info">
+      แตะได้: <span class="highlight" id="tapPower">1</span> แต้ม
     </div>
 
-    <div class="wallet-box" id="walletAddress">Wallet: Loading...</div>
+    <div style="background:#1a1a2e; border:1px solid #FFD700; border-radius:12px; padding:10px; margin:15px 0; font-size:12px; word-break:break-all;">
+      Wallet: <span id="walletAddress">Loading...</span>
+    </div>
 
-    <button class="upgrade-btn" onclick="upgradeCharacter()">Upgrade (<span id="upgradeCost">500</span> Pts)</button>
-    <button class="refer-btn" onclick="openReferralAd()">Claim Airdrop!</button>
-    <button onclick="copyAddress()" style="background:#5f27cd; color:white;">Copy Wallet</button>
+    <button class="upgrade-btn" onclick="upgradeCharacter()">อัปเกรด (<span id="upgradeCost">500</span> แต้ม)</button>
+    <button class="refer-btn" onclick="openReferralAd()">รับ Airdrop!</button>
+    <button class="copy-btn" onclick="copyAddress()">คัดลอก Wallet</button>
   </div>
 
-  <!-- Uniswap-Style Swap Modal -->
+  <!-- Swap Modal -->
   <div id="exchangeModal" class="modal">
     <div class="modal-content">
       <div class="swap-card">
-        <div class="swap-header">
-          <h3>Swap</h3>
-          <button class="settings-btn" onclick="openSettings()">Settings</button>
-        </div>
+        <h3 style="color:#ffd700; margin-bottom:15px;">SWAP</h3>
 
-        <!-- From: POL -->
-        <div class="token-input">
-          <div><img src="https://cryptologos.cc/logos/polygon-matic-logo.png" alt="POL"> POL</div>
+        <div class="token-input" onclick="openTokenList('from')">
+          <div id="fromTokenDisplay"><img src="https://cryptologos.cc/logos/polygon-matic-logo.png" alt="POL"> POL</div>
           <input type="number" id="fromAmount" placeholder="0.0" oninput="calculateSwap()">
-          <div class="token-balance">Balance: <span id="polBalance">0.00</span></div>
         </div>
 
         <div class="swap-arrow">Down Arrow</div>
 
-        <!-- To: KUBA -->
-        <div class="token-input">
-          <div><img src="https://via.placeholder.com/28?text=K" alt="KUBA"> KUBA</div>
+        <div class="token-input" onclick="openTokenList('to')">
+          <div id="toTokenDisplay"><img src="https://via.placeholder.com/28?text=K" alt="KUBA"> KUBA</div>
           <div id="toAmount" style="font-size:20px; color:#4ade80;">0.00</div>
-          <div class="token-balance">Balance: <span id="kubaBalance">0.00</span></div>
         </div>
 
-        <!-- Swap Info -->
         <div class="swap-info">
-          <div>Price <span id="price">Loading...</span></div>
-          <div>Price Impact <span class="price-impact" id="priceImpact">0.00%</span></div>
-          <div>Dev Fee (1%) <span class="dev-fee" id="devFee">0.00 KUBA</span></div>
-          <div>Network Gas <span id="gasFee">~0.002 POL</span></div>
-          <div>Slippage Tolerance <span id="slippage">0.5%</span></div>
+          <div>คุณจะได้รับ <span id="receiveAmount">0.00</span> <span id="toSymbol">KUBA</span></div>
+          <div>เครือข่าย <span id="network">Polygon</span></div>
         </div>
 
-        <button class="swap-btn" id="swapButton" onclick="confirmSwap()" disabled>Enter Amount</button>
+        <button class="swap-btn" id="swapButton" onclick="confirmSwap()" disabled>กรอกจำนวน</button>
       </div>
+      <button onclick="closeExchange()" style="background:#e74c3c; margin:10px;">ปิด</button>
+    </div>
+  </div>
 
-      <button onclick="closeExchange()" style="background:#e74c3c; margin:10px;">Close</button>
+  <!-- Token List -->
+  <div id="tokenModal" class="modal">
+    <div class="modal-content">
+      <h3 style="color:#ffd700;">เลือกเหรียญ</h3>
+      <div class="token-list">
+        <div class="token-item" onclick="selectToken('POL')"><img src="https://cryptologos.cc/logos/polygon-matic-logo.png" alt="POL"> POL</div>
+        <div class="token-item" onclick="selectToken('KUBA')"><img src="https://via.placeholder.com/24?text=K" alt="KUBA"> KUBA</div>
+        <div class="token-item" onclick="selectToken('TON')"><img src="https://cryptologos.cc/logos/ton-toncoin-logo.png" alt="TON"> TON</div>
+      </div>
+      <button onclick="closeTokenList()" style="background:#e74c3c; margin:10px;">ยกเลิก</button>
     </div>
   </div>
 
   <script>
-    // Variables
-    let points = 0, kubaBalance = 0, polBalance = 0, energy = 100, maxEnergy = 100, tapPower = 1, level = 1;
+    let points = 0, energy = 100, maxEnergy = 100, tapPower = 1, level = 1;
     const MAX_LEVEL = 100;
     let wallet = null, provider = null;
-    const CONTRACT_ADDRESS = '0x8eFc217Bb56e9081455171002F80b84737cB4468';
-    const UNISWAP_ROUTER = '0xE592427A0AEce92De3Edee1F18E0157C05861564'; // QuickSwap (Polygon)
-    const WPOL = '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270';
-    const KUBA = '0x8eFc217Bb56e9081455171002F80b84737cB4468';
-    let price = 0;
+    let rewardCooldown = 0;
+    const REWARD_COOLDOWN = 30;
 
-    // Load / Save
     function loadGame() {
       points = parseFloat(localStorage.getItem('kuba_points')) || 0;
       level = parseInt(localStorage.getItem('kuba_level')) || 1;
@@ -139,53 +146,83 @@
     }
     function saveGame() { localStorage.setItem('kuba_points', points); localStorage.setItem('kuba_level', level); }
 
-    // Init
     async function initWallet() {
       loadGame();
       let pk = localStorage.getItem('kuba_private_key');
-      if (!pk) { wallet = ethers.Wallet.createRandom(); localStorage.setItem('kuba_private_key', wallet.privateKey); alert('Wallet created!'); }
+      if (!pk) { wallet = ethers.Wallet.createRandom(); localStorage.setItem('kuba_private_key', wallet.privateKey); alert('สร้าง Wallet แล้ว!'); }
       else wallet = new ethers.Wallet(pk);
-      document.getElementById('walletAddress').innerText = 'Wallet: ' + wallet.address.slice(0,8) + '...' + wallet.address.slice(-6);
+      document.getElementById('walletAddress').innerText = wallet.address.slice(0,8) + '...' + wallet.address.slice(-6);
       provider = new ethers.providers.JsonRpcProvider('https://polygon-rpc.com');
-      loadBalances(); setInterval(loadBalances, 10000);
-      fetchPrice(); setInterval(fetchPrice, 15000);
+      updateTokenDisplay();
+      startRewardCooldown();
     }
 
-    // Fetch Real Price from Uniswap
-    async function fetchPrice() {
-      try {
-        const router = new ethers.Contract(UNISWAP_ROUTER, [
-          "function getAmountsOut(uint amountIn, address[] memory path) public view returns (uint[] memory amounts)"
-        ], provider);
-        const amountIn = ethers.utils.parseUnits("1", 18); // 1 POL
-        const path = [WPOL, KUBA];
-        const amounts = await router.getAmountsOut(amountIn, path);
-        price = parseFloat(ethers.utils.formatUnits(amounts[1], 18));
-        document.getElementById('price').innerText = `1 POL = ${price.toFixed(6)} KUBA`;
-      } catch { document.getElementById('price').innerText = "Price unavailable"; }
+    function startRewardCooldown() {
+      const btn = document.getElementById('rewardButton');
+      const cd = document.getElementById('rewardCooldown');
+      const interval = setInterval(() => {
+        if (rewardCooldown > 0) {
+          rewardCooldown--;
+          btn.disabled = true;
+          cd.innerText = `รอ ${rewardCooldown} วินาที`;
+        } else {
+          btn.disabled = false;
+          cd.innerText = 'พร้อมใช้งาน';
+          clearInterval(interval);
+        }
+      }, 1000);
     }
 
-    // Load Balances
-    async function loadBalances() {
-      try { const b = await provider.getBalance(wallet.address); polBalance = parseFloat(ethers.utils.formatEther(b)).toFixed(4); } catch { polBalance = '0.00'; }
-      try { const c = new ethers.Contract(KUBA, ["function balanceOf(address) view returns (uint256)"], provider); const b = await c.balanceOf(wallet.address); kubaBalance = parseFloat(ethers.utils.formatUnits(b, 18)).toFixed(2); } catch { kubaBalance = '0.00'; }
-      updateUI(); updateSwapUI();
+    function claimReward() {
+      const energyReward = Math.floor(maxEnergy * 0.5);
+      energy = Math.min(energy + energyReward, maxEnergy);
+      points += 200;
+      saveGame(); updateUI();
+      rewardCooldown = REWARD_COOLDOWN;
+      startRewardCooldown();
+      alert(`ได้รับพลังงาน +${energyReward}\nได้รับ +200 แต้ม!`);
     }
 
-    // Swap Calculation
+    let fromToken = 'POL', toToken = 'KUBA', selecting = '';
+    const tokens = {
+      POL: { name: 'POL', img: 'https://cryptologos.cc/logos/polygon-matic-logo.png' },
+      KUBA: { name: 'KUBA', img: 'https://via.placeholder.com/28?text=K' },
+      TON: { name: 'TON', img: 'https://cryptologos.cc/logos/ton-toncoin-logo.png' }
+    };
+
+    function openTokenList(type) { selecting = type; document.getElementById('tokenModal').style.display = 'block'; }
+    function closeTokenList() { document.getElementById('tokenModal').style.display = 'none'; }
+    function selectToken(token) {
+      if (selecting === 'from') fromToken = token;
+      else toToken = token;
+      updateTokenDisplay(); calculateSwap(); closeTokenList();
+    }
+    function updateTokenDisplay() {
+      document.getElementById('fromTokenDisplay').innerHTML = `<img src="${tokens[fromToken].img}" alt="${fromToken}"> ${fromToken}`;
+      document.getElementById('toTokenDisplay').innerHTML = `<img src="${tokens[toToken].img}" alt="${toToken}"> ${toToken}`;
+      document.getElementById('toSymbol').innerText = toToken;
+    }
+
     function calculateSwap() {
       const amt = parseFloat(document.getElementById('fromAmount').value) || 0;
-      if (amt <= 0 || !price) { document.getElementById('swapButton').disabled = true; return; }
-      const output = amt * price;
-      const devFee = output * 0.01;
-      const final = output - devFee;
-      document.getElementById('toAmount').innerText = final.toFixed(6);
-      document.getElementById('devFee').innerText = devFee.toFixed(6) + ' KUBA';
+      if (amt <= 0) { document.getElementById('swapButton').disabled = true; return; }
+
+      let rate = 0;
+      if (fromToken === 'POL' && toToken === 'KUBA') rate = 0.1;
+      else if (fromToken === 'KUBA' && toToken === 'POL') rate = 10;
+      else if (fromToken === 'POL' && toToken === 'TON') rate = 0.05;
+      else if (fromToken === 'TON' && toToken === 'POL') rate = 20;
+      else if (fromToken === 'KUBA' && toToken === 'TON') rate = 0.5;
+      else if (fromToken === 'TON' && toToken === 'KUBA') rate = 2;
+
+      const output = amt * rate * 0.99;
+      document.getElementById('toAmount').innerText = output.toFixed(6);
+      document.getElementById('receiveAmount').innerText = output.toFixed(6);
+      document.getElementById('network').innerText = (fromToken === 'TON' || toToken === 'TON') ? 'TON Bridge' : 'Polygon';
       document.getElementById('swapButton').disabled = false;
-      document.getElementById('swapButton').innerText = 'Swap';
+      document.getElementById('swapButton').innerText = 'แลกเปลี่ยน';
     }
 
-    // UI
     function updateUI() {
       document.getElementById('pointsDisplay').innerText = points.toLocaleString();
       document.getElementById('level').innerText = level;
@@ -195,43 +232,32 @@
       const cost = level >= MAX_LEVEL ? 'MAX' : (level === 99 ? 1500000 : 500 + level * 15000).toLocaleString();
       document.getElementById('upgradeCost').innerText = cost;
     }
-    function updateSwapUI() {
-      document.getElementById('polBalance').innerText = polBalance;
-      document.getElementById('kubaBalance').innerText = kubaBalance;
-    }
 
-    // Modals
-    function openExchange() { document.getElementById('exchangeModal').style.display = 'block'; updateSwapUI(); calculateSwap(); }
+    function openExchange() { document.getElementById('exchangeModal').style.display = 'block'; calculateSwap(); }
     function closeExchange() { document.getElementById('exchangeModal').style.display = 'none'; }
-    function openSettings() { alert('Slippage: 0.5% (Default)'); }
-
-    // Swap
-    async function confirmSwap() {
-      alert('Swap via Uniswap + 1% Dev Fee (Dev Wallet: Coming Soon)');
+    function confirmSwap() {
+      alert(`แลก ${document.getElementById('fromAmount').value} ${fromToken} → ${document.getElementById('toAmount').innerText} ${toToken}`);
       closeExchange();
     }
 
-    // Tap & Upgrade
     document.getElementById('baldHead').addEventListener('click', () => {
       if (energy <= 0) return;
       energy--; points += tapPower; createParticle('+' + tapPower); saveGame(); updateUI();
       if (energy === 0) regenerateEnergy();
     });
     function upgradeCharacter() {
-      if (level >= MAX_LEVEL) { alert('MAX LEVEL!'); return; }
+      if (level >= MAX_LEVEL) { alert('ถึงระดับสูงสุดแล้ว!'); return; }
       const cost = level === 99 ? 1500000 : 500 + level * 15000;
-      if (points < cost) { alert(`Need ${cost.toLocaleString()} Points!`); return; }
+      if (points < cost) { alert(`ต้องการ ${cost.toLocaleString()} แต้ม!`); return; }
       points -= cost; level++; tapPower = level; maxEnergy = level * 100; saveGame(); updateUI();
     }
 
-    // Utils
     function createParticle(t) { const p = document.createElement('div'); p.className = 'particle'; p.innerText = t; p.style.left = Math.random()*80+10+'%'; p.style.top='40%'; document.body.appendChild(p); setTimeout(() => p.remove(), 1000); }
     function regenerateEnergy() { const i = setInterval(() => { if (energy < maxEnergy) { energy++; updateUI(); } else clearInterval(i); }, 1000); }
-    function copyAddress() { navigator.clipboard.writeText(wallet.address); alert('Copied!'); }
+    function copyAddress() { navigator.clipboard.writeText(wallet.address); alert('คัดลอกแล้ว!'); }
     function openReferralAd() { window.open('https://sunantongsan.github.io/kuba-game/share-ad.html', '_blank'); }
 
-    // Start
     Telegram.WebApp.ready(); Telegram.WebApp.expand(); initWallet(); regenerateEnergy();
   </script>
 </body>
-</html>
+</html>เปลี่ยนปุ่มเป็น "รางวัล" + ใช้ข้อความสีสวย
