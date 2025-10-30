@@ -59,7 +59,7 @@
 
     <button class="ad-points" onclick="showAdForPoints()">Watch Ad → +100 Points</button>
     <button class="ad-energy" onclick="showAdForEnergy()">Watch Ad → +50 Energy</button>
-    <button class="refer-btn" onclick="shareReferral()">Invite Friend → +2,000 Points per referral</button>
+    <button class="refer-btn" onclick="shareReferral()">เชิญเพื่อน → 10,000 Points/คน</button>
     <button class="exchange-btn" onclick="openExchange()">Exchange Points → KUBA</button>
     <button class="upgrade-btn" onclick="upgradeCharacter()">Upgrade Tap Power (500 Points)</button>
     <button class="transfer-btn" onclick="openTransfer()">Transfer KUBA</button>
@@ -107,7 +107,11 @@
     let provider = null;
     let kubaPrice = 0;
     const CONTRACT_ADDRESS = '0x8eFc217Bb56e9081455171002F80b84737cB4468';
-    const ABI = [ /* ABI เดิม */ {"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"}, {"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"mint","outputs":[],"stateMutability":"nonpayable","type":"function"}];
+    const ABI = [ 
+      {"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"}, 
+      {"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"mint","outputs":[],"stateMutability":"nonpayable","type":"function"},
+      {"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transfer","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"}
+    ];
 
     // Load/Save Game
     function loadGame() {
@@ -233,18 +237,54 @@
       }).catch(() => alert('Ad failed'));
     }
 
-    // Invite Friend (2,000 Points per referral)
+    // --- ระบบ Referral ใหม่ ---
     function shareReferral() {
-      const link = `https://t.me/kubaminer_bot?start=ref_${Telegram.WebApp.initDataUnsafe.user?.id || 'unknown'}`;
-      Telegram.WebApp.openTelegramLink(link);
-      setTimeout(() => {
-        if (confirm('Friend joined! Claim 2,000 Points?')) {
-          points += 2000;
-          updateUI();
-          saveGame();
-          alert('You got 2,000 Points!');
+      const userId = Telegram.WebApp.initDataUnsafe?.user?.id || 'unknown';
+      const referralLink = `https://t.me/kubaminer_bot?start=ref_${userId}`;
+      
+      const message = `
+🎉 **เชิญเพื่อนรับ 10,000 Points!**
+
+📌 ลิงก์ของคุณ:
+\`${referralLink}\`
+
+👥 เมื่อเพื่อน:
+1. กดลิงก์
+2. เริ่มเล่นเกม
+→ คุณได้ **10,000 Points อัตโนมัติ!**
+
+💡 แชร์เลย → KUBA พุ่งแน่นอน!
+      `.trim();
+
+      Telegram.WebApp.openTelegramLink(
+        `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(message)}`
+      );
+
+      const shared = localStorage.getItem('referral_shared');
+      if (!shared) {
+        localStorage.setItem('referral_shared', 'true');
+      }
+    }
+
+    async function checkReferral() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const refParam = urlParams.get('start');
+      
+      if (refParam && refParam.startsWith('ref_')) {
+        const referrerId = refParam.replace('ref_', '');
+        const currentUserId = Telegram.WebApp.initDataUnsafe?.user?.id;
+
+        if (currentUserId && referrerId !== currentUserId.toString()) {
+          const claimed = localStorage.getItem(`referral_claimed_${referrerId}`);
+          if (!claimed && points > 0) {
+            points += 10000;
+            localStorage.setItem(`referral_claimed_${referrerId}`, 'true');
+            saveGame();
+            updateUI();
+            alert(`🎉 ยินดีต้อนรับ! คุณได้รับ 10,000 Points จากการแนะนำ!`);
+          }
         }
-      }, 1000);
+      }
     }
 
     // Exchange Modal
@@ -371,6 +411,7 @@
     Telegram.WebApp.expand();
     initWallet();
     regenerateEnergy();
+    document.addEventListener('DOMContentLoaded', checkReferral);
   </script>
 </body>
 </html>
