@@ -1,363 +1,172 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>KUBA Bald Tap</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.js"></script>
-  <script src='//libtl.com/sdk.js' data-zone='10111635' data-sdk='show_10111635'></script>
-  <style>
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body { background:#0f0f1a; color:#fff; font-family:Arial, sans-serif; text-align:center; padding:10px; overflow:hidden; }
-    .container { max-width:400px; margin:auto; }
-    .topbar { display:flex; justify-content:space-between; background:#1a1a2e; padding:10px 15px; border-radius:12px; margin-bottom:15px; font-size:14px; font-weight:bold; }
-    .topbar .left { color:#ffd700; }
-    .topbar .right { color:#4ade80; text-align:right; }
-    h1 { font-size:24px; margin:10px 0; font-weight:bold; }
-    .bald { width:180px; height:180px; margin:20px auto; cursor:pointer; user-select:none; }
-    .bald img { width:100%; height:100%; border-radius:50%; transition:0.2s; }
-    .bald:active img { transform:scale(0.92); }
-    .stats { display:flex; justify-content:space-around; margin:15px 0; font-size:14px; }
-    .stat { background:#1a1a2e; padding:8px 12px; border-radius:8px; flex:1; margin:0 5px; }
-    button { 
-      background:#ffd700; color:#000; border:none; padding:12px 20px; 
-      border-radius:12px; font-weight:bold; font-size:16px; margin:8px; width:90%;
-      transition:0.2s;
+<!-- === ส่วนแสดงผลและปุ่มแลกเปลี่ยน === -->
+<div id="exchangeSection" style="margin: 20px; padding: 15px; background: #f9f9f9; border-radius: 10px; display: none;">
+  <h3>แลก KUBA</h3>
+  <p>กระเป๋า: <span id="userWallet">ยังไม่ได้เชื่อมต่อ</span></p>
+  <p>แต้มปัจจุบัน: <span id="userPoints">0</span></p>
+
+  <select id="exchangeDirection">
+    <option value="points_to_kuba">แต้ม → KUBA</option>
+    <option value="kuba_to_points">KUBA → แต้ม</option>
+  </select>
+
+  <input type="number" id="exchangeAmount" placeholder="กรอกจำนวน..." style="width: 100%; padding: 10px; margin: 10px 0;" min="0" step="any">
+
+  <div id="exchangePreview" style="margin: 10px 0; padding: 10px; background: #e7f3ff; border-radius: 8px; display: none;"></div>
+
+  <button onclick="confirmExchange()" style="background: #4CAF50; color: white; padding: 12px; border: none; border-radius: 8px; width: 100%; font-size: 16px;">
+    ยืนยันการแลก
+  </button>
+  <div id="exchangeResult" style="margin-top: 10px;"></div>
+</div>
+
+<script>
+// === ตั้งค่า ===
+const POINTS_PER_KUBA = 10;
+const MIN_POINTS_TO_EXCHANGE = 100000;
+let userWallet = null;
+let userPoints = 0; // ดึงจากเกมหรือ API
+
+// Web3
+let web3;
+if (typeof window.ethereum !== 'undefined') {
+  web3 = new Web3(window.ethereum);
+}
+
+// ดึงแต้มจากเกม (สมมุติว่ามีตัวแปรในเกม)
+function loadUserData() {
+  // ตัวอย่าง: ดึงจาก localStorage หรือตัวแปรเกม
+  userPoints = parseInt(localStorage.getItem('playerPoints')) || 150000;
+  document.getElementById('userPoints').innerText = userPoints.toLocaleString();
+}
+
+// เชื่อมต่อ MetaMask
+async function connectWallet() {
+  if (!web3) return alert("กรุณาติดตั้ง MetaMask");
+
+  try {
+    const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+    userWallet = accounts[0];
+    document.getElementById('userWallet').innerText = userWallet.slice(0, 6) + '...' + userWallet.slice(-4);
+    document.getElementById('exchangeSection').style.display = 'block';
+    loadUserData();
+  } catch (err) {
+    alert("ปฏิเสธการเชื่อมต่อ");
+  }
+}
+
+// ดูตัวอย่างการแลก
+document.getElementById('exchangeAmount').addEventListener('input', function() {
+  const amount = parseFloat(this.value) || 0;
+  const dir = document.getElementById('exchangeDirection').value;
+  const preview = document.getElementById('exchangePreview');
+
+  if (amount <= 0) {
+    preview.style.display = 'none';
+    return;
+  }
+
+  let html = '';
+  if (dir === 'points_to_kuba') {
+    if (amount < MIN_POINTS_TO_EXCHANGE) {
+      html = `<span style="color:red">ต้องใช้อย่างน้อย ${MIN_POINTS_TO_EXCHANGE.toLocaleString()} แต้ม</span>`;
+    } else if (amount > userPoints) {
+      html = `<span style="color:red">แต้มไม่พอ! มี ${userPoints.toLocaleString()}</span>`;
+    } else {
+      const kuba = Math.floor(amount / POINTS_PER_KUBA);
+      html = `ได้ <strong>${kuba} KUBA</strong> (หัก ${amount.toLocaleString()} แต้ม)`;
     }
-    button:active { transform:scale(0.98); }
-    .ad-points { background:#ff4757; color:white; }
-    .ad-energy { background:#3498db; color:white; }
-    .exchange-btn { background:#9c88ff; color:white; }
-    .upgrade-btn { background:#f39c12; color:white; }
-    .refer-btn { background:#2ed573; color:#000; font-weight:bold; }
-    .transfer-btn { background:#e74c3c; color:white; }
-    .wallet { font-size:11px; word-break:break-all; margin:10px; color:#aaa; padding:8px; background:#1a1a2e; border-radius:8px; }
-    .particle { position:absolute; font-size:26px; pointer-events:none; animation:fly 1s ease-out forwards; font-weight:bold; }
-    @keyframes fly { to { transform:translateY(-120px); opacity:0; } }
-    .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:999; }
-    .modal-content { background:#1a1a2e; margin:20% auto; padding:20px; width:80%; border-radius:16px; text-align:center; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="topbar">
-      <div class="left">Points: <span id="pointsDisplay">0</span></div>
-      <div class="right">KUBA: <span id="kubaDisplay">0</span> (<span id="kubaValue">$0.00</span>)</div>
-    </div>
+  } else {
+    const points = Math.floor(amount * POINTS_PER_KUBA);
+    // ตรวจ KUBA ในกระเป๋า (ถ้ามี contract)
+    html = `ได้ <strong>${points.toLocaleString()} แต้ม</strong> (ใช้ ${amount} KUBA)`;
+  }
 
-    <h1>KUBAMINER</h1>
-    <div class="bald" id="baldHead">
-      <img id="baldImg" src="bald.png" alt="Bald Head" onerror="this.src='https://via.placeholder.com/300?text=Bald+Head'" />
-    </div>
+  preview.innerHTML = html;
+  preview.style.display = 'block';
+});
 
-    <div class="stats">
-      <div class="stat">Energy: <span id="energy">100</span>/100</div>
-      <div class="stat">Level: <span id="level">1</span></div>
-    </div>
-    <div class="wallet" id="walletAddress">Creating wallet...</div>
+// ยืนยันการแลก
+async function confirmExchange() {
+  const amount = parseFloat(document.getElementById('exchangeAmount').value);
+  const dir = document.getElementById('exchangeDirection').value;
+  const resultDiv = document.getElementById('exchangeResult');
 
-    <button class="ad-points" onclick="showAdForPoints()">Watch Ad → +100 Points</button>
-    <button class="ad-energy" onclick="showAdForEnergy()">Watch Ad → +50 Energy</button>
-    <button class="refer-btn" onclick="shareReferral()">Invite Friends → 10,000 Points each!</button>
-    <button class="exchange-btn" onclick="openExchange()">Exchange Points → KUBA</button>
-    <button class="upgrade-btn" onclick="upgradeCharacter()">Upgrade Tap Power (500 Points)</button>
-    <button class="transfer-btn" onclick="openTransfer()">Transfer KUBA</button>
-    <button onclick="copyAddress()">Copy Wallet Address</button>
-    <button onclick="exportKey()" style="background:#5f27cd; color:white;">Export Private Key</button>
-  </div>
+  if (!amount || amount <= 0) return alert("กรอกจำนวน!");
 
-  <!-- Modal Exchange -->
-  <div id="exchangeModal" class="modal">
-    <div class="modal-content">
-      <h2>Exchange Points → KUBA</h2>
-      <p>100 Points = 1 KUBA</p>
-      <select id="exchangeAmount">
-        <option value="100">100 Points → 1 KUBA</option>
-        <option value="500">500 Points → 5 KUBA</option>
-        <option value="1000">1,000 Points → 10 KUBA</option>
-      </select>
-      <button onclick="confirmExchange()" style="background:#4ade80; margin:10px;">Confirm</button>
-      <button onclick="closeExchange()" style="background:#e74c3c;">Cancel</button>
-    </div>
-  </div>
+  // ตรวจ POL
+  if (!userWallet) return alert("กรุณาเชื่อมต่อกระเป๋าก่อน");
+  const balance = await web3.eth.getBalance(userWallet);
+  const pol = parseFloat(web3.utils.fromWei(balance, 'ether'));
+  if (pol < 0.001) return alert("คุณต้องมี POL อย่างน้อย 0.001 เพื่อจ่าย Gas Fee!");
 
-  <!-- Modal Transfer -->
-  <div id="transferModal" class="modal">
-    <div class="modal-content">
-      <h2>Transfer KUBA</h2>
-      <p>To: <input id="transferTo" type="text" placeholder="Recipient Address" style="width:100%; padding:10px; margin:10px; border-radius:8px;"></p>
-      <p>Amount: <input id="transferAmount" type="number" placeholder="KUBA Amount" style="width:100%; padding:10px; margin:10px; border-radius:8px;"></p>
-      <button onclick="confirmTransfer()" style="background:#4ade80; margin:10px;">Transfer</button>
-      <button onclick="closeTransfer()" style="background:#e74c3c;">Cancel</button>
-    </div>
-  </div>
+  if (dir === 'points_to_kuba') {
+    if (amount < MIN_POINTS_TO_EXCHANGE) return alert(`ขั้นต่ำ ${MIN_POINTS_TO_EXCHANGE.toLocaleString()} แต้ม`);
+    if (amount > userPoints) return alert("แต้มไม่พอ!");
 
-  <script>
-    // Game Variables
-    let points = 0;
-    let kubaBalance = 0;
-    let energy = 100;
-    let maxEnergy = 100;
-    let tapPower = 1;
-    let level = 1;
-    let lastAdTime = 0;
-    const AD_COOLDOWN = 3 * 60 * 1000;
-    let wallet = null;
-    let provider = null;
-    let kubaPrice = 0;
-    const CONTRACT_ADDRESS = '0x8eFc217Bb56e9081455171002F80b84737cB4468';
-    const ABI = [ 
-      {"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"}, 
-      {"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"mint","outputs":[],"stateMutability":"nonpayable","type":"function"},
-      {"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transfer","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"}
-    ];
+    const kuba = Math.floor(amount / POINTS_PER_KUBA);
+    if (!confirm(`แลก ${amount.toLocaleString()} แต้ม → ${kuba} KUBA?`)) return;
 
-    // Load/Save Game
-    function loadGame() {
-      points = parseFloat(localStorage.getItem('kuba_points')) || 0;
-      kubaBalance = parseFloat(localStorage.getItem('kuba_balance')) || 0;
-      level = parseInt(localStorage.getItem('kuba_level')) || 1;
-      tapPower = level;
-      maxEnergy = 100 + (level - 1) * 20;
-      energy = Math.min(energy, maxEnergy);
-      updateUI();
-    }
-    function saveGame() {
-      localStorage.setItem('kuba_points', points);
-      localStorage.setItem('kuba_balance', kubaBalance);
-      localStorage.setItem('kuba_level', level);
-    }
-
-    // Init Wallet
-    async function initWallet() {
-      loadGame();
-      let privateKey = localStorage.getItem('kuba_private_key');
-      if (!privateKey) {
-        wallet = ethers.Wallet.createRandom();
-        privateKey = wallet.privateKey;
-        localStorage.setItem('kuba_private_key', privateKey);
-        alert('Wallet created! Backup your Private Key.');
+    // === เรียก Backend หรือ Smart Contract ===
+    // ตัวอย่าง: ส่งไป API
+    fetch('/exchange', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        wallet: userWallet,
+        action: 'points_to_kuba',
+        points: amount,
+        kuba: kuba
+      })
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        userPoints -= amount;
+        localStorage.setItem('playerPoints', userPoints);
+        document.getElementById('userPoints').innerText = userPoints.toLocaleString();
+        resultDiv.innerHTML = `<span style="color:green">สำเร็จ! ได้ ${kuba} KUBA</span>`;
       } else {
-        wallet = new ethers.Wallet(privateKey);
+        resultDiv.innerHTML = `<span style="color:red">${data.error}</span>`;
       }
-      document.getElementById('walletAddress').innerText = 'Wallet: ' + wallet.address.slice(0, 8) + '...' + wallet.address.slice(-6);
-      provider = new ethers.providers.JsonRpcProvider('https://polygon-rpc.com');
-      await loadKubaFromChain();
-      fetchKubaPrice();
-    }
-
-    // Load KUBA from Chain
-    async function loadKubaFromChain() {
-      if (!wallet) return;
-      const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
-      try {
-        const balance = await contract.balanceOf(wallet.address);
-        const chainKuba = parseFloat(ethers.utils.formatUnits(balance, 18));
-        if (chainKuba > kubaBalance) kubaBalance = chainKuba;
-        saveGame();
-        updateUI();
-      } catch (e) { console.log('Chain load failed', e); }
-    }
-
-    // Fetch Price
-    async function fetchKubaPrice() {
-      try {
-        const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=kuba&vs_currencies=usd');
-        const data = await res.json();
-        kubaPrice = data.kuba?.usd || 0;
-        updateUI();
-      } catch (e) { kubaPrice = 0; }
-    }
-    setInterval(fetchKubaPrice, 30000);
-
-    // Update Bald Color
-    function updateBaldColor() {
-      const img = document.getElementById('baldImg');
-      const colors = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57', '#FF9FF3', '#54A0FF'];
-      img.style.filter = `hue-rotate(${level * 45}deg) drop-shadow(0 0 15px ${colors[level % colors.length]})`;
-    }
-
-    // Tap
-    document.getElementById('baldHead').addEventListener('click', () => {
-      if (energy <= 0) {
-        Telegram.WebApp.HapticFeedback.notificationOccurred('error');
-        return;
-      }
-      energy -= 1;
-      points += tapPower;
-      createParticle('+' + tapPower);
-      Telegram.WebApp.HapticFeedback.impactOccurred('medium');
-      checkLevelUp();
-      updateUI();
-      saveGame();
-      if (energy === 0) regenerateEnergy();
     });
 
-    // Level Up
-    function checkLevelUp() {
-      const newLevel = Math.floor(points / 500) + 1;
-      if (newLevel > level) {
-        level = newLevel;
-        tapPower = level;
-        maxEnergy = 100 + (level - 1) * 20;
-        updateBaldColor();
-        alert(`Level Up! Level ${level} (Tap Power: ${tapPower})`);
+  } else {
+    // KUBA → แต้ม
+    const points = Math.floor(amount * POINTS_PER_KUBA);
+    if (!confirm(`ใช้ ${amount} KUBA → ได้ ${points.toLocaleString()} แต้ม?`)) return;
+
+    // ต้องเผา KUBA ผ่าน contract (ถ้ามี)
+    // หรือส่งไป backend
+    resultDiv.innerHTML = `<span style="color:green">กำลังดำเนินการ...</span>`;
+
+    fetch('/exchange', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        wallet: userWallet,
+        action: 'kuba_to_points',
+        kuba: amount,
+        points: points
+      })
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        userPoints += points;
+        localStorage.setItem('playerPoints', userPoints);
+        document.getElementById('userPoints').innerText = userPoints.toLocaleString();
+        resultDiv.innerHTML = `<span style="color:green">สำเร็จ! ได้ ${points.toLocaleString()} แต้ม</span>`;
+      } else {
+        resultDiv.innerHTML = `<span style="color:red">${data.error}</span>`;
       }
-    }
+    });
+  }
+}
 
-    // Watch Ad for Points
-    function showAdForPoints() {
-      if (Date.now() - lastAdTime < AD_COOLDOWN) {
-        alert(`Wait ${Math.ceil((AD_COOLDOWN - (Date.now() - lastAdTime)) / 60000)} min`);
-        return;
-      }
-      show_10111635().then(() => {
-        points += 100;
-        lastAdTime = Date.now();
-        updateUI();
-        saveGame();
-        Telegram.WebApp.HapticFeedback.notificationOccurred('success');
-        alert('+100 Points!');
-      }).catch(() => alert('Ad failed'));
-    }
-
-    // Watch Ad for Energy
-    function showAdForEnergy() {
-      if (Date.now() - lastAdTime < AD_COOLDOWN) {
-        alert(`Wait ${Math.ceil((AD_COOLDOWN - (Date.now() - lastAdTime)) / 60000)} min`);
-        return;
-      }
-      show_10111635().then(() => {
-        energy = Math.min(energy + 50, maxEnergy);
-        lastAdTime = Date.now();
-        updateUI();
-        Telegram.WebApp.HapticFeedback.notificationOccurred('success');
-        alert('+50 Energy!');
-      }).catch(() => alert('Ad failed'));
-    }
-
-    // --- ระบบ Referral ใหม่ (ภาษาอังกฤษ + แชร์โซเชียล + รูปภาพ) ---
-    function shareReferral() {
-      const userId = Telegram.WebApp.initDataUnsafe?.user?.id || 'unknown';
-      const referralLink = `https://t.me/kubaminer_bot?start=ref_${userId}`;
-      
-      const gameImage = "https://sunantongsan.github.io/kuba-game/bald.png"; // รูปหัวล้าน
-      const message = `🎮 *Tap the Bald Head & Earn KUBA!*\n\n` +
-        `💰 *Invite Friends = 10,000 Points Each!*\n\n` +
-        `🚀 *KUBA will moon soon!*\n\n` +
-        `👇 Join now via my link:\n${referralLink}\n\n` +
-        `[Play Now](${referralLink})`;
-
-      // ตัวเลือกแชร์
-      const options = [
-        { name: "X (Twitter)", url: `https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}&url=${encodeURIComponent(referralLink)}` },
-        { name: "Facebook", url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(referralLink)}` },
-        { name: "WhatsApp", url: `https://wa.me/?text=${encodeURIComponent(message)}` },
-        { name: "Telegram", url: `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(message)}` }
-      ];
-
-      let html = `<div style="padding:15px; background:#1a1a2e; border-radius:12px; margin:10px;">`;
-      html += `<img src="${gameImage}" style="width:100%; border-radius:12px; margin-bottom:10px;">`;
-      html += `<p style="font-size:14px; margin:10px 0;"><strong>Your Referral Link:</strong><br><code>${referralLink}</code></p>`;
-      html += `<p style="font-size:14px; color:#ffd700;">Share to:</p>`;
-
-      options.forEach(opt => {
-        html += `<button onclick="window.open('${opt.url}', '_blank')" style="background:#${opt.name==='X (Twitter)'?'1da1f2':opt.name==='Facebook'?'1877f2':opt.name==='WhatsApp'?'25d366':'0088cc'}; color:white; margin:5px; padding:10px; border-radius:8px; width:90%; font-weight:bold;">${opt.name}</button>`;
-      });
-      html += `</div>`;
-
-      // แสดงใน Modal (ไม่เด้งออก)
-      const modal = document.createElement('div');
-      modal.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; display:flex; align-items:center; justify-content:center; padding:20px;';
-      modal.innerHTML = html + `<button onclick="this.parentElement.remove()" style="margin-top:10px; background:#e74c3c; color:white;">Close</button>`;
-      document.body.appendChild(modal);
-    }
-
-    // ตรวจสอบ Referral เมื่อเริ่มเกม
-    async function checkReferral() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const refParam = urlParams.get('start');
-      
-      if (refParam && refParam.startsWith('ref_')) {
-        const referrerId = refParam.replace('ref_', '');
-        const currentUserId = Telegram.WebApp.initDataUnsafe?.user?.id;
-
-        if (currentUserId && referrerId !== currentUserId.toString()) {
-          const claimed = localStorage.getItem(`referral_claimed_${referrerId}`);
-          if (!claimed && points > 0) {
-            points += 10000;
-            localStorage.setItem(`referral_claimed_${referrerId}`, 'true');
-            saveGame();
-            updateUI();
-            alert(`Welcome! You earned 10,000 Points from referral!`);
-          }
-        }
-      }
-    }
-
-    // Exchange, Transfer, Upgrade... (เหมือนเดิม)
-    function openExchange() { document.getElementById('exchangeModal').style.display = 'block'; }
-    function closeExchange() { document.getElementById('exchangeModal').style.display = 'none'; }
-    function confirmExchange() {
-      const amount = parseInt(document.getElementById('exchangeAmount').value);
-      if (points < amount) { alert('Not enough Points!'); return; }
-      points -= amount; kubaBalance += amount / 100; saveGame(); updateUI(); saveKubaToChain(); closeExchange();
-      alert(`Exchanged! +${amount / 100} KUBA`);
-    }
-    function openTransfer() { if (kubaBalance <= 0) { alert('No KUBA!'); return; } document.getElementById('transferModal').style.display = 'block'; }
-    function closeTransfer() { document.getElementById('transferModal').style.display = 'none'; }
-    async function confirmTransfer() {
-      const to = document.getElementById('transferTo').value;
-      const amount = parseFloat(document.getElementById('transferAmount').value);
-      if (!to || amount <= 0 || amount > kubaBalance) { alert('Invalid!'); return; }
-      try {
-        const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, wallet.connect(provider));
-        const tx = await contract.transfer(to, ethers.utils.parseUnits(amount.toString(), 18));
-        await tx.wait();
-        kubaBalance -= amount; saveGame(); updateUI(); closeTransfer(); alert('Transfer successful!');
-      } catch (e) { alert('Failed: ' + e.message); }
-    }
-    function upgradeCharacter() {
-      if (points < 500) { alert('Need 500 Points!'); return; }
-      points -= 500; level += 1; tapPower = level; maxEnergy += 20; saveGame(); updateUI(); updateBaldColor();
-      alert(`Upgraded! Level ${level} | Tap: ${tapPower} | Max Energy: ${maxEnergy}`);
-    }
-    async function saveKubaToChain() {
-      if (!wallet || kubaBalance === 0) return;
-      const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, wallet.connect(provider));
-      try {
-        const tx = await contract.mint(wallet.address, ethers.utils.parseUnits(kubaBalance.toString(), 18));
-        await tx.wait(); kubaBalance = 0; saveGame(); await loadKubaFromChain();
-      } catch (e) { console.log('Mint failed', e); }
-    }
-
-    // UI & Utils
-    function updateUI() {
-      document.getElementById('pointsDisplay').innerText = points.toLocaleString();
-      document.getElementById('kubaDisplay').innerText = kubaBalance.toFixed(2);
-      document.getElementById('kubaValue').innerText = `$${(kubaBalance * kubaPrice).toFixed(2)}`;
-      document.getElementById('energy').innerText = energy + '/' + maxEnergy;
-      document.getElementById('level').innerText = level;
-      updateBaldColor();
-    }
-    function createParticle(text) {
-      const p = document.createElement('div'); p.className = 'particle'; p.innerText = text;
-      p.style.left = Math.random() * 80 + 10 + '%'; p.style.top = '40%'; document.body.appendChild(p);
-      setTimeout(() => p.remove(), 1000);
-    }
-    function regenerateEnergy() {
-      const interval = setInterval(() => { if (energy < maxEnergy) { energy += 1; updateUI(); } else clearInterval(interval); }, 1000);
-    }
-    function copyAddress() { navigator.clipboard.writeText(wallet.address); alert('Copied!'); }
-    function exportKey() { alert('Private Key:\n' + wallet.privateKey); }
-
-    // Start
-    Telegram.WebApp.ready();
-    Telegram.WebApp.expand();
-    initWallet();
-    regenerateEnergy();
-    document.addEventListener('DOMContentLoaded', checkReferral);
-  </script>
-</body>
-</html>
+// เรียกตอนโหลดหน้า (ถ้าต้องการ)
+window.onload = function() {
+  // ถ้ามีปุ่มเชื่อมต่ออยู่แล้ว ให้ผูกฟังก์ชัน
+  const connectBtn = document.querySelector('#connectWalletBtn'); // เปลี่ยน ID ตามไฟล์คุณ
+  if (connectBtn) connectBtn.onclick = connectWallet;
+};
+</script>
