@@ -1,172 +1,266 @@
-<!-- === ส่วนแสดงผลและปุ่มแลกเปลี่ยน === -->
-<div id="exchangeSection" style="margin: 20px; padding: 15px; background: #f9f9f9; border-radius: 10px; display: none;">
-  <h3>แลก KUBA</h3>
-  <p>กระเป๋า: <span id="userWallet">ยังไม่ได้เชื่อมต่อ</span></p>
-  <p>แต้มปัจจุบัน: <span id="userPoints">0</span></p>
+# kuba_bot.py
+# Telegram Bot สำหรับแลก KUBA บน Polygon (POL)
+# ใช้ python-telegram-bot v20+
 
-  <select id="exchangeDirection">
-    <option value="points_to_kuba">แต้ม → KUBA</option>
-    <option value="kuba_to_points">KUBA → แต้ม</option>
-  </select>
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes
+from web3 import Web3
+import sqlite3
+import math
 
-  <input type="number" id="exchangeAmount" placeholder="กรอกจำนวน..." style="width: 100%; padding: 10px; margin: 10px 0;" min="0" step="any">
+# === ตั้งค่า ===
+TOKEN = "YOUR_BOT_TOKEN_HERE"  # ใส่ Token จาก @BotFather
+INFURA_URL = "https://polygon-mainnet.infura.io/v3/YOUR_INFURA_KEY"  # ใส่ Infura Key
+WEB3 = Web3(Web3.HTTPProvider(INFURA_URL))
 
-  <div id="exchangePreview" style="margin: 10px 0; padding: 10px; background: #e7f3ff; border-radius: 8px; display: none;"></div>
+CONTRACT_ADDRESS = "0xYourKubaContractAddress"  # เปลี่ยนเป็น KUBA Contract
+ABI = [  # วาง ABI ของ KUBA Token ที่นี่
+    # ตัวอย่าง
+    {"inputs":[],"name":"balanceOf","outputs":[{"type":"uint256"}],"stateMutability":"view","type":"function"},
+    {"inputs":[{"type":"address"},{"type":"uint256"}],"name":"transfer","outputs":[],"stateMutability":"nonpayable","type":"function"}
+]
 
-  <button onclick="confirmExchange()" style="background: #4CAF50; color: white; padding: 12px; border: none; border-radius: 8px; width: 100%; font-size: 16px;">
-    ยืนยันการแลก
-  </button>
-  <div id="exchangeResult" style="margin-top: 10px;"></div>
-</div>
+contract = WEB3.eth.contract(address=CONTRACT_ADDRESS, abi=ABI)
 
-<script>
-// === ตั้งค่า ===
-const POINTS_PER_KUBA = 10;
-const MIN_POINTS_TO_EXCHANGE = 100000;
-let userWallet = null;
-let userPoints = 0; // ดึงจากเกมหรือ API
+# อัตราแลกเปลี่ยน
+POINTS_PER_KUBA = 10
+MIN_POINTS_TO_KUBA = 100_000  # ขั้นต่ำ
 
-// Web3
-let web3;
-if (typeof window.ethereum !== 'undefined') {
-  web3 = new Web3(window.ethereum);
-}
+# === ฐานข้อมูล ===
+def init_db():
+    conn = sqlite3.connect('kuba_users.db')
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS users
+                 (user_id INTEGER PRIMARY KEY, wallet TEXT, points INTEGER DEFAULT 0)''')
+    conn.commit()
+    conn.close()
 
-// ดึงแต้มจากเกม (สมมุติว่ามีตัวแปรในเกม)
-function loadUserData() {
-  // ตัวอย่าง: ดึงจาก localStorage หรือตัวแปรเกม
-  userPoints = parseInt(localStorage.getItem('playerPoints')) || 150000;
-  document.getElementById('userPoints').innerText = userPoints.toLocaleString();
-}
+def get_user(user_id):
+    conn = sqlite3.connect('kuba_users.db')
+    c = conn.cursor()
+    c.execute("SELECT wallet, points FROM users WHERE user_id = ?", (user_id,))
+    row = c.fetchone()
+    conn.close()
+    return row
 
-// เชื่อมต่อ MetaMask
-async function connectWallet() {
-  if (!web3) return alert("กรุณาติดตั้ง MetaMask");
+def update_points(user_id, points):
+    conn = sqlite3.connect('kuba_users.db')
+    c = conn.cursor()
+    c.execute("UPDATE users SET points = ? WHERE user_id = ?", (points, user_id))
+    conn.commit()
+    conn.close()
 
-  try {
-    const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-    userWallet = accounts[0];
-    document.getElementById('userWallet').innerText = userWallet.slice(0, 6) + '...' + userWallet.slice(-4);
-    document.getElementById('exchangeSection').style.display = 'block';
-    loadUserData();
-  } catch (err) {
-    alert("ปฏิเสธการเชื่อมต่อ");
-  }
-}
+def set_wallet(user_id, wallet):
+    conn = sqlite3.connect('kuba_users.db')
+    c = conn.cursor()
+    c.execute("INSERT OR REPLACE INTO users (user_id, wallet, points) VALUES (?, ?, COALESCE((SELECT points FROM users WHERE user_id = ?), 0))",
+              (user_id, wallet, user_id))
+    conn.commit()
+    conn.close()
 
-// ดูตัวอย่างการแลก
-document.getElementById('exchangeAmount').addEventListener('input', function() {
-  const amount = parseFloat(this.value) || 0;
-  const dir = document.getElementById('exchangeDirection').value;
-  const preview = document.getElementById('exchangePreview');
+# === ตรวจ POL ===
+async def has_pol(wallet):
+    try:
+        balance = WEB3.eth.get_balance(wallet)
+        return WEB3.from_wei(balance, 'ether') >= 0.001
+    except:
+        return False
 
-  if (amount <= 0) {
-    preview.style.display = 'none';
-    return;
-  }
+# === /start ===
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = [
+        [InlineKeyboardButton("เชื่อมต่อกระเป๋า", callback_data="connect_wallet")],
+        [InlineKeyboardButton("แลก KUBA", callback_data="exchange")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text(
+        "ยินดีต้อนรับสู่บอทแลก KUBA!\n"
+        "ใช้ /connect เพื่อเชื่อมกระเป๋า\n"
+        "แล้วกดปุ่มด้านล่างเพื่อเริ่ม",
+        reply_markup=reply_markup
+    )
 
-  let html = '';
-  if (dir === 'points_to_kuba') {
-    if (amount < MIN_POINTS_TO_EXCHANGE) {
-      html = `<span style="color:red">ต้องใช้อย่างน้อย ${MIN_POINTS_TO_EXCHANGE.toLocaleString()} แต้ม</span>`;
-    } else if (amount > userPoints) {
-      html = `<span style="color:red">แต้มไม่พอ! มี ${userPoints.toLocaleString()}</span>`;
-    } else {
-      const kuba = Math.floor(amount / POINTS_PER_KUBA);
-      html = `ได้ <strong>${kuba} KUBA</strong> (หัก ${amount.toLocaleString()} แต้ม)`;
-    }
-  } else {
-    const points = Math.floor(amount * POINTS_PER_KUBA);
-    // ตรวจ KUBA ในกระเป๋า (ถ้ามี contract)
-    html = `ได้ <strong>${points.toLocaleString()} แต้ม</strong> (ใช้ ${amount} KUBA)`;
-  }
+# === เชื่อมกระเป๋า ===
+async def connect_wallet(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    await query.edit_message_text(
+        "ส่งที่อยู่กระเป๋า Polygon (0x...) ของคุณมา\n"
+        "เช่น: `0x1234567890abcdef1234567890abcdef12345678`",
+        parse_mode='Markdown'
+    )
+    context.user_data['awaiting'] = 'wallet'
 
-  preview.innerHTML = html;
-  preview.style.display = 'block';
-});
+# === เมนูแลกเปลี่ยน ===
+async def exchange_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    user = get_user(query.from_user.id)
+    if not user or not user[0]:
+        await query.edit_message_text("กรุณาเชื่อมต่อกระเป๋าก่อน!")
+        return
 
-// ยืนยันการแลก
-async function confirmExchange() {
-  const amount = parseFloat(document.getElementById('exchangeAmount').value);
-  const dir = document.getElementById('exchangeDirection').value;
-  const resultDiv = document.getElementById('exchangeResult');
+    keyboard = [
+        [InlineKeyboardButton("แต้ม → KUBA", callback_data="ex_points_to_kuba")],
+        [InlineKeyboardButton("KUBA → แต้ม", callback_data="ex_kuba_to_points")],
+        [InlineKeyboardButton("กลับ", callback_data="back")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await query.edit_message_text(
+        f"กระเป๋า: `{user[0]}`\n"
+        f"แต้ม: `{user[1]:,}`\n\n"
+        "เลือกการแลก:",
+        reply_markup=reply_markup,
+        parse_mode='Markdown'
+    )
 
-  if (!amount || amount <= 0) return alert("กรอกจำนวน!");
+# === รับข้อความ ===
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if 'awaiting' not in context.user_data:
+        return
 
-  // ตรวจ POL
-  if (!userWallet) return alert("กรุณาเชื่อมต่อกระเป๋าก่อน");
-  const balance = await web3.eth.getBalance(userWallet);
-  const pol = parseFloat(web3.utils.fromWei(balance, 'ether'));
-  if (pol < 0.001) return alert("คุณต้องมี POL อย่างน้อย 0.001 เพื่อจ่าย Gas Fee!");
+    text = update.message.text.strip()
+    user_id = update.message.from_user.id
 
-  if (dir === 'points_to_kuba') {
-    if (amount < MIN_POINTS_TO_EXCHANGE) return alert(`ขั้นต่ำ ${MIN_POINTS_TO_EXCHANGE.toLocaleString()} แต้ม`);
-    if (amount > userPoints) return alert("แต้มไม่พอ!");
+    if context.user_data['awaiting'] == 'wallet':
+        if not text.lower().startswith('0x') or len(text) != 42:
+            await update.message.reply_text("ที่อยู่ไม่ถูกต้อง! ต้องเป็น 0x + 40 ตัวอักษร")
+            return
+        set_wallet(user_id, text)
+        await update.message.reply_text(f"เชื่อมต่อกระเป๋าสำเร็จ: `{text}`", parse_mode='Markdown')
+        del context.user_data['awaiting']
 
-    const kuba = Math.floor(amount / POINTS_PER_KUBA);
-    if (!confirm(`แลก ${amount.toLocaleString()} แต้ม → ${kuba} KUBA?`)) return;
+    elif context.user_data['awaiting'] == 'points_amount':
+        try:
+            points = int(text.replace(',', ''))
+            if points < MIN_POINTS_TO_KUBA:
+                await update.message.reply_text(f"ต้องแลกอย่างน้อย {MIN_POINTS_TO_KUBA:,} แต้ม")
+                return
+            user = get_user(user_id)
+            if points > user[1]:
+                await update.message.reply_text(f"แต้มไม่พอ! มี {user[1]:,} แต้ม")
+                return
 
-    // === เรียก Backend หรือ Smart Contract ===
-    // ตัวอย่าง: ส่งไป API
-    fetch('/exchange', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        wallet: userWallet,
-        action: 'points_to_kuba',
-        points: amount,
-        kuba: kuba
-      })
-    })
-    .then(r => r.json())
-    .then(data => {
-      if (data.success) {
-        userPoints -= amount;
-        localStorage.setItem('playerPoints', userPoints);
-        document.getElementById('userPoints').innerText = userPoints.toLocaleString();
-        resultDiv.innerHTML = `<span style="color:green">สำเร็จ! ได้ ${kuba} KUBA</span>`;
-      } else {
-        resultDiv.innerHTML = `<span style="color:red">${data.error}</span>`;
-      }
-    });
+            kuba = points // POINTS_PER_KUBA
+            keyboard = [
+                [InlineKeyboardButton("ยืนยัน", callback_data=f"confirm_p2k_{points}")],
+                [InlineKeyboardButton("ยกเลิก", callback_data="cancel")]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            await update.message.reply_text(
+                f"แลก {points:,} แต้ม → {kuba} KUBA\n"
+                "ต้องใช้ POL จ่าย Gas",
+                reply_markup=reply_markup
+            )
+            del context.user_data['awaiting']
+        except:
+            await update.message.reply_text("กรอกตัวเลขเท่านั้น!")
 
-  } else {
-    // KUBA → แต้ม
-    const points = Math.floor(amount * POINTS_PER_KUBA);
-    if (!confirm(`ใช้ ${amount} KUBA → ได้ ${points.toLocaleString()} แต้ม?`)) return;
+    elif context.user_data['awaiting'] == 'kuba_amount':
+        try:
+            kuba = float(text.replace(',', ''))
+            if kuba <= 0:
+                await update.message.reply_text("จำนวนต้องมากกว่า 0")
+                return
 
-    // ต้องเผา KUBA ผ่าน contract (ถ้ามี)
-    // หรือส่งไป backend
-    resultDiv.innerHTML = `<span style="color:green">กำลังดำเนินการ...</span>`;
+            user = get_user(user_id)
+            balance_wei = contract.functions.balanceOf(user[0]).call()
+            balance_kuba = WEB3.from_wei(balance_wei, 'ether')
+            if kuba > balance_kuba:
+                await update.message.reply_text(f"KUBA ไม่พอ! มี {balance_kuba:.6f}")
+                return
 
-    fetch('/exchange', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        wallet: userWallet,
-        action: 'kuba_to_points',
-        kuba: amount,
-        points: points
-      })
-    })
-    .then(r => r.json())
-    .then(data => {
-      if (data.success) {
-        userPoints += points;
-        localStorage.setItem('playerPoints', userPoints);
-        document.getElementById('userPoints').innerText = userPoints.toLocaleString();
-        resultDiv.innerHTML = `<span style="color:green">สำเร็จ! ได้ ${points.toLocaleString()} แต้ม</span>`;
-      } else {
-        resultDiv.innerHTML = `<span style="color:red">${data.error}</span>`;
-      }
-    });
-  }
-}
+            points = int(kuba * POINTS_PER_KUBA)
+            keyboard = [
+                [InlineKeyboardButton("ยืนยัน", callback_data=f"confirm_k2p_{kuba}")],
+                [InlineKeyboardButton("ยกเลิก", callback_data="cancel")]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            await update.message.reply_text(
+                f"แลก {kuba} KUBA → {points:,} แต้ม\n"
+                "ต้องใช้ POL จ่าย Gas",
+                reply_markup=reply_markup
+            )
+            del context.user_data['awaiting']
+        except Exception as e:
+            await update.message.reply_text("เกิดข้อผิดพลาด")
 
-// เรียกตอนโหลดหน้า (ถ้าต้องการ)
-window.onload = function() {
-  // ถ้ามีปุ่มเชื่อมต่ออยู่แล้ว ให้ผูกฟังก์ชัน
-  const connectBtn = document.querySelector('#connectWalletBtn'); // เปลี่ยน ID ตามไฟล์คุณ
-  if (connectBtn) connectBtn.onclick = connectWallet;
-};
-</script>
+# === ปุ่มกด ===
+async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    data = query.data
+
+    if data == "connect_wallet":
+        await connect_wallet(update, context)
+    elif data == "exchange":
+        await exchange_menu(update, context)
+    elif data == "ex_points_to_kuba":
+        user = get_user(query.from_user.id)
+        if user[1] < MIN_POINTS_TO_KUBA:
+            await query.edit_message_text(f"ต้องมีอย่างน้อย {MIN_POINTS_TO_KUBA:,} แต้ม")
+            return
+        await query.edit_message_text(
+            f"กรอกจำนวน *แต้ม* ที่ต้องการแลก\n"
+            f"ขั้นต่ำ: {MIN_POINTS_TO_KUBA:,}\n"
+            "เช่น: 150000",
+            parse_mode='Markdown'
+        )
+        context.user_data['awaiting'] = 'points_amount'
+    elif data == "ex_kuba_to_points":
+        await query.edit_message_text(
+            "กรอกจำนวน *KUBA* ที่ต้องการแลกเป็นแต้ม\n"
+            "เช่น: 50.5",
+            parse_mode='Markdown'
+        )
+        context.user_data['awaiting'] = 'kuba_amount'
+    elif data.startswith("confirm_p2k_"):
+        points = int(data.split("_")[-1])
+        user = get_user(query.from_user.id)
+        if not await has_pol(user[0]):
+            await query.edit_message_text("คุณต้องมี POL อย่างน้อย 0.001 เพื่อจ่าย Gas!")
+            return
+        kuba = points // POINTS_PER_KUBA
+        new_points = user[1] - points
+        update_points(query.from_user.id, new_points)
+        await query.edit_message_text(
+            f"แลกสำเร็จ!\n"
+            f"หัก {points:,} แต้ม\n"
+            f"ได้ {kuba} KUBA\n"
+            "รอรับในกระเป๋า 1-3 นาที"
+        )
+        # เรียก backend เพื่อ mint KUBA
+    elif data.startswith("confirm_k2p_"):
+        kuba = float(data.split("_")[-1])
+        user = get_user(query.from_user.id)
+        if not await has_pol(user[0]):
+            await query.edit_message_text("คุณต้องมี POL อย่างน้อย 0.001 เพื่อจ่าย Gas!")
+            return
+        points = int(kuba * POINTS_PER_KUBA)
+        new_points = user[1] + points
+        update_points(query.from_user.id, new_points)
+        await query.edit_message_text(
+            f"แลกสำเร็จ!\n"
+            f"เผา {kuba} KUBA\n"
+            f"ได้ {points:,} แต้ม"
+        )
+        # เรียก backend เพื่อ burn KUBA
+    elif data == "cancel":
+        await query.edit_message_text("ยกเลิกแล้ว")
+    elif data == "back":
+        await start(update, context)
+
+# === รันบอท ===
+def main():
+    init_db()
+    app = Application.builder().token(TOKEN).build()
+
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CallbackQueryHandler(button_handler))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+
+    print("บอทเริ่มทำงาน...")
+    app.run_polling()
+
+if __name__ == '__main__':
+    main()
