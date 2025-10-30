@@ -30,7 +30,7 @@
     .ad-energy { background:#3498db; color:white; }
     .exchange-btn { background:#9c88ff; color:white; }
     .upgrade-btn { background:#f39c12; color:white; }
-    .refer-btn { background:#2ed573; color:#000; }
+    .refer-btn { background:#2ed573; color:#000; font-weight:bold; }
     .transfer-btn { background:#e74c3c; color:white; }
     .wallet { font-size:11px; word-break:break-all; margin:10px; color:#aaa; padding:8px; background:#1a1a2e; border-radius:8px; }
     .particle { position:absolute; font-size:26px; pointer-events:none; animation:fly 1s ease-out forwards; font-weight:bold; }
@@ -59,7 +59,7 @@
 
     <button class="ad-points" onclick="showAdForPoints()">Watch Ad → +100 Points</button>
     <button class="ad-energy" onclick="showAdForEnergy()">Watch Ad → +50 Energy</button>
-    <button class="refer-btn" onclick="shareReferral()">เชิญเพื่อน → 10,000 Points/คน</button>
+    <button class="refer-btn" onclick="shareReferral()">Invite Friends → 10,000 Points each!</button>
     <button class="exchange-btn" onclick="openExchange()">Exchange Points → KUBA</button>
     <button class="upgrade-btn" onclick="upgradeCharacter()">Upgrade Tap Power (500 Points)</button>
     <button class="transfer-btn" onclick="openTransfer()">Transfer KUBA</button>
@@ -237,35 +237,44 @@
       }).catch(() => alert('Ad failed'));
     }
 
-    // --- ระบบ Referral ใหม่ ---
+    // --- ระบบ Referral ใหม่ (ภาษาอังกฤษ + แชร์โซเชียล + รูปภาพ) ---
     function shareReferral() {
       const userId = Telegram.WebApp.initDataUnsafe?.user?.id || 'unknown';
       const referralLink = `https://t.me/kubaminer_bot?start=ref_${userId}`;
       
-      const message = `
-🎉 **เชิญเพื่อนรับ 10,000 Points!**
+      const gameImage = "https://sunantongsan.github.io/kuba-game/bald.png"; // รูปหัวล้าน
+      const message = `🎮 *Tap the Bald Head & Earn KUBA!*\n\n` +
+        `💰 *Invite Friends = 10,000 Points Each!*\n\n` +
+        `🚀 *KUBA will moon soon!*\n\n` +
+        `👇 Join now via my link:\n${referralLink}\n\n` +
+        `[Play Now](${referralLink})`;
 
-📌 ลิงก์ของคุณ:
-\`${referralLink}\`
+      // ตัวเลือกแชร์
+      const options = [
+        { name: "X (Twitter)", url: `https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}&url=${encodeURIComponent(referralLink)}` },
+        { name: "Facebook", url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(referralLink)}` },
+        { name: "WhatsApp", url: `https://wa.me/?text=${encodeURIComponent(message)}` },
+        { name: "Telegram", url: `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(message)}` }
+      ];
 
-👥 เมื่อเพื่อน:
-1. กดลิงก์
-2. เริ่มเล่นเกม
-→ คุณได้ **10,000 Points อัตโนมัติ!**
+      let html = `<div style="padding:15px; background:#1a1a2e; border-radius:12px; margin:10px;">`;
+      html += `<img src="${gameImage}" style="width:100%; border-radius:12px; margin-bottom:10px;">`;
+      html += `<p style="font-size:14px; margin:10px 0;"><strong>Your Referral Link:</strong><br><code>${referralLink}</code></p>`;
+      html += `<p style="font-size:14px; color:#ffd700;">Share to:</p>`;
 
-💡 แชร์เลย → KUBA พุ่งแน่นอน!
-      `.trim();
+      options.forEach(opt => {
+        html += `<button onclick="window.open('${opt.url}', '_blank')" style="background:#${opt.name==='X (Twitter)'?'1da1f2':opt.name==='Facebook'?'1877f2':opt.name==='WhatsApp'?'25d366':'0088cc'}; color:white; margin:5px; padding:10px; border-radius:8px; width:90%; font-weight:bold;">${opt.name}</button>`;
+      });
+      html += `</div>`;
 
-      Telegram.WebApp.openTelegramLink(
-        `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(message)}`
-      );
-
-      const shared = localStorage.getItem('referral_shared');
-      if (!shared) {
-        localStorage.setItem('referral_shared', 'true');
-      }
+      // แสดงใน Modal (ไม่เด้งออก)
+      const modal = document.createElement('div');
+      modal.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; display:flex; align-items:center; justify-content:center; padding:20px;';
+      modal.innerHTML = html + `<button onclick="this.parentElement.remove()" style="margin-top:10px; background:#e74c3c; color:white;">Close</button>`;
+      document.body.appendChild(modal);
     }
 
+    // ตรวจสอบ Referral เมื่อเริ่มเกม
     async function checkReferral() {
       const urlParams = new URLSearchParams(window.location.search);
       const refParam = urlParams.get('start');
@@ -281,96 +290,49 @@
             localStorage.setItem(`referral_claimed_${referrerId}`, 'true');
             saveGame();
             updateUI();
-            alert(`🎉 ยินดีต้อนรับ! คุณได้รับ 10,000 Points จากการแนะนำ!`);
+            alert(`Welcome! You earned 10,000 Points from referral!`);
           }
         }
       }
     }
 
-    // Exchange Modal
-    function openExchange() {
-      document.getElementById('exchangeModal').style.display = 'block';
-    }
-    function closeExchange() {
-      document.getElementById('exchangeModal').style.display = 'none';
-    }
+    // Exchange, Transfer, Upgrade... (เหมือนเดิม)
+    function openExchange() { document.getElementById('exchangeModal').style.display = 'block'; }
+    function closeExchange() { document.getElementById('exchangeModal').style.display = 'none'; }
     function confirmExchange() {
       const amount = parseInt(document.getElementById('exchangeAmount').value);
-      if (points < amount) {
-        alert('Not enough Points!');
-        return;
-      }
-      points -= amount;
-      kubaBalance += amount / 100;
-      saveGame();
-      updateUI();
-      saveKubaToChain();
-      closeExchange();
+      if (points < amount) { alert('Not enough Points!'); return; }
+      points -= amount; kubaBalance += amount / 100; saveGame(); updateUI(); saveKubaToChain(); closeExchange();
       alert(`Exchanged! +${amount / 100} KUBA`);
     }
-
-    // Transfer Modal
-    function openTransfer() {
-      if (kubaBalance <= 0) {
-        alert('No KUBA to transfer!');
-        return;
-      }
-      document.getElementById('transferModal').style.display = 'block';
-    }
-    function closeTransfer() {
-      document.getElementById('transferModal').style.display = 'none';
-    }
+    function openTransfer() { if (kubaBalance <= 0) { alert('No KUBA!'); return; } document.getElementById('transferModal').style.display = 'block'; }
+    function closeTransfer() { document.getElementById('transferModal').style.display = 'none'; }
     async function confirmTransfer() {
       const to = document.getElementById('transferTo').value;
       const amount = parseFloat(document.getElementById('transferAmount').value);
-      if (!to || amount <= 0 || amount > kubaBalance) {
-        alert('Invalid amount or address!');
-        return;
-      }
+      if (!to || amount <= 0 || amount > kubaBalance) { alert('Invalid!'); return; }
       try {
         const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, wallet.connect(provider));
         const tx = await contract.transfer(to, ethers.utils.parseUnits(amount.toString(), 18));
         await tx.wait();
-        kubaBalance -= amount;
-        saveGame();
-        updateUI();
-        closeTransfer();
-        alert('Transfer successful!');
-      } catch (e) {
-        alert('Transfer failed: ' + e.message);
-      }
+        kubaBalance -= amount; saveGame(); updateUI(); closeTransfer(); alert('Transfer successful!');
+      } catch (e) { alert('Failed: ' + e.message); }
     }
-
-    // Upgrade Character
     function upgradeCharacter() {
-      if (points < 500) {
-        alert('Need 500 Points!');
-        return;
-      }
-      points -= 500;
-      level += 1;
-      tapPower = level;
-      maxEnergy += 20;
-      saveGame();
-      updateUI();
-      updateBaldColor();
+      if (points < 500) { alert('Need 500 Points!'); return; }
+      points -= 500; level += 1; tapPower = level; maxEnergy += 20; saveGame(); updateUI(); updateBaldColor();
       alert(`Upgraded! Level ${level} | Tap: ${tapPower} | Max Energy: ${maxEnergy}`);
     }
-
-    // Save KUBA to Chain
     async function saveKubaToChain() {
       if (!wallet || kubaBalance === 0) return;
       const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, wallet.connect(provider));
       try {
         const tx = await contract.mint(wallet.address, ethers.utils.parseUnits(kubaBalance.toString(), 18));
-        await tx.wait();
-        kubaBalance = 0;
-        saveGame();
-        await loadKubaFromChain();
+        await tx.wait(); kubaBalance = 0; saveGame(); await loadKubaFromChain();
       } catch (e) { console.log('Mint failed', e); }
     }
 
-    // UI Update
+    // UI & Utils
     function updateUI() {
       document.getElementById('pointsDisplay').innerText = points.toLocaleString();
       document.getElementById('kubaDisplay').innerText = kubaBalance.toFixed(2);
@@ -379,32 +341,16 @@
       document.getElementById('level').innerText = level;
       updateBaldColor();
     }
-
-    // Utils
     function createParticle(text) {
-      const p = document.createElement('div');
-      p.className = 'particle';
-      p.innerText = text;
-      p.style.left = Math.random() * 80 + 10 + '%';
-      p.style.top = '40%';
-      document.body.appendChild(p);
+      const p = document.createElement('div'); p.className = 'particle'; p.innerText = text;
+      p.style.left = Math.random() * 80 + 10 + '%'; p.style.top = '40%'; document.body.appendChild(p);
       setTimeout(() => p.remove(), 1000);
     }
     function regenerateEnergy() {
-      const interval = setInterval(() => {
-        if (energy < maxEnergy) {
-          energy += 1;
-          updateUI();
-        } else clearInterval(interval);
-      }, 1000);
+      const interval = setInterval(() => { if (energy < maxEnergy) { energy += 1; updateUI(); } else clearInterval(interval); }, 1000);
     }
-    function copyAddress() {
-      navigator.clipboard.writeText(wallet.address);
-      alert('Copied!');
-    }
-    function exportKey() {
-      alert('Private Key:\n' + wallet.privateKey);
-    }
+    function copyAddress() { navigator.clipboard.writeText(wallet.address); alert('Copied!'); }
+    function exportKey() { alert('Private Key:\n' + wallet.privateKey); }
 
     // Start
     Telegram.WebApp.ready();
