@@ -6,6 +6,7 @@
   <title>KUBAMINER</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.js"></script>
+  <!-- Monetag SDK - โฆษณาจริง -->
   <script src='//libtl.com/sdk.js' data-zone='10111635' data-sdk='show_10111635'></script>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
@@ -94,24 +95,19 @@
     <div class="modal-content">
       <div class="swap-card">
         <h3 style="color:#ffd700; margin-bottom:15px;">SWAP</h3>
-
         <div class="token-input" onclick="openTokenList('from')">
           <div id="fromTokenDisplay"><img src="https://cryptologos.cc/logos/polygon-matic-logo.png" alt="POL"> POL</div>
           <input type="number" id="fromAmount" placeholder="0.0" oninput="calculateSwap()">
         </div>
-
         <div class="swap-arrow">Down Arrow</div>
-
         <div class="token-input" onclick="openTokenList('to')">
           <div id="toTokenDisplay"><img src="https://via.placeholder.com/28?text=K" alt="KUBA"> KUBA</div>
           <div id="toAmount" style="font-size:20px; color:#4ade80;">0.00</div>
         </div>
-
         <div class="swap-info">
           <div>คุณจะได้รับ <span id="receiveAmount">0.00</span> <span id="toSymbol">KUBA</span></div>
           <div>เครือข่าย <span id="network">Polygon</span></div>
         </div>
-
         <button class="swap-btn" id="swapButton" onclick="confirmSwap()" disabled>กรอกจำนวน</button>
       </div>
       <button onclick="closeExchange()" style="background:#e74c3c; margin:10px;">ปิด</button>
@@ -132,12 +128,14 @@
   </div>
 
   <script>
+    // ตัวแปรเกม
     let points = 0, energy = 100, maxEnergy = 100, tapPower = 1, level = 1;
     const MAX_LEVEL = 100;
     let wallet = null, provider = null;
     let rewardCooldown = 0;
-    const REWARD_COOLDOWN = 30;
+    const REWARD_COOLDOWN = 30; // วินาที
 
+    // โหลด / บันทึก
     function loadGame() {
       points = parseFloat(localStorage.getItem('kuba_points')) || 0;
       level = parseInt(localStorage.getItem('kuba_level')) || 1;
@@ -146,6 +144,7 @@
     }
     function saveGame() { localStorage.setItem('kuba_points', points); localStorage.setItem('kuba_level', level); }
 
+    // สร้าง Wallet
     async function initWallet() {
       loadGame();
       let pk = localStorage.getItem('kuba_private_key');
@@ -157,6 +156,7 @@
       startRewardCooldown();
     }
 
+    // ระบบรางวัลจากโฆษณา (Monetag)
     function startRewardCooldown() {
       const btn = document.getElementById('rewardButton');
       const cd = document.getElementById('rewardCooldown');
@@ -174,15 +174,29 @@
     }
 
     function claimReward() {
-      const energyReward = Math.floor(maxEnergy * 0.5);
-      energy = Math.min(energy + energyReward, maxEnergy);
-      points += 200;
-      saveGame(); updateUI();
-      rewardCooldown = REWARD_COOLDOWN;
-      startRewardCooldown();
-      alert(`ได้รับพลังงาน +${energyReward}\nได้รับ +200 แต้ม!`);
+      const btn = document.getElementById('rewardButton');
+      btn.disabled = true;
+      document.getElementById('rewardCooldown').innerText = 'กำลังโหลดโฆษณา...';
+
+      // เรียกโฆษณาจริงจาก Monetag
+      show_10111635().then(() => {
+        // ดูจบแล้ว → ให้รางวัล
+        const energyReward = Math.floor(maxEnergy * 0.5);
+        energy = Math.min(energy + energyReward, maxEnergy);
+        points += 200;
+        saveGame(); updateUI();
+        alert(`โฆษณาจบแล้ว!\nได้รับพลังงาน +${energyReward}\nได้รับ +200 แต้ม!`);
+        rewardCooldown = REWARD_COOLDOWN;
+        startRewardCooldown();
+      }).catch(() => {
+        // ปิดโฆษณาเร็วเกินไป
+        alert('กรุณาดูโฆษณาจบเพื่อรับรางวัล');
+        btn.disabled = false;
+        document.getElementById('rewardCooldown').innerText = 'พร้อมใช้งาน';
+      });
     }
 
+    // ระบบ Swap
     let fromToken = 'POL', toToken = 'KUBA', selecting = '';
     const tokens = {
       POL: { name: 'POL', img: 'https://cryptologos.cc/logos/polygon-matic-logo.png' },
@@ -215,7 +229,7 @@
       else if (fromToken === 'KUBA' && toToken === 'TON') rate = 0.5;
       else if (fromToken === 'TON' && toToken === 'KUBA') rate = 2;
 
-      const output = amt * rate * 0.99;
+      const output = amt * rate * 0.99; // 1% หักเงียบ
       document.getElementById('toAmount').innerText = output.toFixed(6);
       document.getElementById('receiveAmount').innerText = output.toFixed(6);
       document.getElementById('network').innerText = (fromToken === 'TON' || toToken === 'TON') ? 'TON Bridge' : 'Polygon';
@@ -223,6 +237,7 @@
       document.getElementById('swapButton').innerText = 'แลกเปลี่ยน';
     }
 
+    // อัปเดต UI
     function updateUI() {
       document.getElementById('pointsDisplay').innerText = points.toLocaleString();
       document.getElementById('level').innerText = level;
@@ -233,6 +248,7 @@
       document.getElementById('upgradeCost').innerText = cost;
     }
 
+    // Modal
     function openExchange() { document.getElementById('exchangeModal').style.display = 'block'; calculateSwap(); }
     function closeExchange() { document.getElementById('exchangeModal').style.display = 'none'; }
     function confirmSwap() {
@@ -240,11 +256,13 @@
       closeExchange();
     }
 
+    // แตะตัวการ์ตูน
     document.getElementById('baldHead').addEventListener('click', () => {
       if (energy <= 0) return;
       energy--; points += tapPower; createParticle('+' + tapPower); saveGame(); updateUI();
       if (energy === 0) regenerateEnergy();
     });
+
     function upgradeCharacter() {
       if (level >= MAX_LEVEL) { alert('ถึงระดับสูงสุดแล้ว!'); return; }
       const cost = level === 99 ? 1500000 : 500 + level * 15000;
@@ -252,12 +270,26 @@
       points -= cost; level++; tapPower = level; maxEnergy = level * 100; saveGame(); updateUI();
     }
 
-    function createParticle(t) { const p = document.createElement('div'); p.className = 'particle'; p.innerText = t; p.style.left = Math.random()*80+10+'%'; p.style.top='40%'; document.body.appendChild(p); setTimeout(() => p.remove(), 1000); }
-    function regenerateEnergy() { const i = setInterval(() => { if (energy < maxEnergy) { energy++; updateUI(); } else clearInterval(i); }, 1000); }
+    // ฟังก์ชันเสริม
+    function createParticle(t) { 
+      const p = document.createElement('div'); 
+      p.className = 'particle'; p.innerText = t; 
+      p.style.left = Math.random()*80+10+'%'; p.style.top='40%'; 
+      document.body.appendChild(p); 
+      setTimeout(() => p.remove(), 1000); 
+    }
+    function regenerateEnergy() { 
+      const i = setInterval(() => { 
+        if (energy < maxEnergy) { energy++; updateUI(); } 
+        else clearInterval(i); 
+      }, 1000); 
+    }
     function copyAddress() { navigator.clipboard.writeText(wallet.address); alert('คัดลอกแล้ว!'); }
     function openReferralAd() { window.open('https://sunantongsan.github.io/kuba-game/share-ad.html', '_blank'); }
 
-    Telegram.WebApp.ready(); Telegram.WebApp.expand(); initWallet(); regenerateEnergy();
+    // เริ่มเกม
+    Telegram.WebApp.ready(); Telegram.WebApp.expand(); 
+    initWallet(); regenerateEnergy();
   </script>
 </body>
-</html>เปลี่ยนปุ่มเป็น "รางวัล" + ใช้ข้อความสีสวย
+</html>
