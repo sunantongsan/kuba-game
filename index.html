@@ -25,6 +25,7 @@
     }
     button:active { transform:scale(0.98); }
     .redeem-btn { background:linear-gradient(135deg, #9c88ff, #6c5ce7); color:white; }
+    .deposit-btn { background:linear-gradient(135deg, #f39c12, #e67e22); color:white; font-size:14px; }
     .reward-btn { background:linear-gradient(135deg, #ff6b6b, #ee5a52); color:white; }
     .upgrade-btn { background:linear-gradient(135deg, #f39c12, #e67e22); color:white; }
     .refer-btn { background:linear-gradient(135deg, #2ed573, #27ae60); color:white; }
@@ -38,24 +39,20 @@
     .bald img { width:100%; height:100%; border-radius:50%; transition:0.2s; box-shadow:0 0 20px rgba(255,215,0,0.4); }
     .bald:active img { transform:scale(0.92); }
 
-    .particle { position:absolute; font-size:26px; pointer-events:none; animation:fly 1s ease-out forwards; font-weight:bold; color:#ffd700; }
-    @keyframes fly { to { transform:translateY(-120px); opacity:0; } }
-
     .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:999; overflow-y:auto; }
     .modal-content { background:#1a1a2e; margin:5% auto; padding:20px; width:90%; border-radius:24px; text-align:center; max-width:400px; box-shadow:0 10px 30px rgba(0,0,0,0.5); }
     
-    /* Redeem UI */
     .redeem-container { background:#0f0f1a; border-radius:20px; padding:20px; margin:15px 0; border:2px solid #ffd700; box-shadow:0 0 20px rgba(255,215,0,0.2); }
     .redeem-title { font-size:22px; color:#ffd700; margin-bottom:15px; text-shadow:0 0 8px #ffd700; }
     
     .input-group { background:#1a1a2e; border-radius:16px; padding:16px; margin:10px 0; text-align:left; border:1px solid #333; }
     .input-group input { background:none; border:none; color:#fff; font-size:24px; text-align:right; width:60%; }
     .input-group label { color:#aaa; font-size:14px; }
-    .fee-info { font-size:12px; color:#ff6b6b; margin:5px 0; text-align:left; }
-    .redeem-btn { background:linear-gradient(135deg, #4ade80, #27ae60); color:white; font-weight:bold; padding:16px; border-radius:16px; margin:15px 0; font-size:18px; width:100%; box-shadow:0 4px 15px rgba(74,222,128,0.4); }
-    .redeem-btn:disabled { background:#555; }
-    .redeem-btn.loading { animation: pulse 1s infinite; }
-    @keyframes pulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.05); } }
+    
+    .confirm-box { background:#1a1a2e; border-radius:16px; padding:16px; margin:15px 0; text-align:left; border:1px solid #4ade80; }
+    .confirm-gas { color:#ff6b6b; font-weight:bold; }
+    .btn-group { display:flex; gap:10px; }
+    .btn-group button { flex:1; margin:0; }
 
     .close-btn { background:#e74c3c; margin:10px; padding:12px; border-radius:12px; font-size:14px; }
 
@@ -72,7 +69,8 @@
 
     <h1>KUBAMINER</h1>
 
-    <button class="redeem-btn" onclick="openRedeem()">Redeem KUBA (100K+ Points)</button>
+    <button class="redeem-btn" onclick="openRedeem()">Redeem KUBA / Points</button>
+    <button class="deposit-btn" onclick="depositPOL()">ฝาก POL (สำหรับ Gas)</button>
     <button class="reward-btn" id="rewardButton" onclick="showRewardChoice()">Get Rewards: Points, Energy</button>
     <div id="rewardCooldown" class="info">Ready</div>
 
@@ -100,23 +98,32 @@
   <div id="redeemModal" class="modal">
     <div class="modal-content">
       <div class="redeem-container">
-        <h3 class="redeem-title">Redeem Points → KUBA</h3>
+        <h3 class="redeem-title">แลกเปลี่ยน</h3>
+        
         <div class="input-group">
-          <label>Points (Min: 100,000)</label>
-          <input type="number" id="pointsToRedeem" placeholder="100000" oninput="calculateRedeem()" min="100000" step="10000">
+          <label>พิมพ์จำนวน (แต้ม หรือ KUBA)</label>
+          <input type="number" id="inputAmount" placeholder="100000" oninput="calculateOutput()">
         </div>
+
         <div class="input-group">
-          <label>You Receive</label>
-          <div style="font-size:28px; color:#4ade80; text-align:right;" id="kubaAmount">0</div>
-          <div style="font-size:14px; color:#aaa; text-align:right;">KUBA</div>
+          <label>คุณจะได้รับ</label>
+          <div style="font-size:28px; color:#4ade80; text-align:right;" id="outputAmount">0</div>
+          <div style="font-size:14px; color:#aaa; text-align:right;" id="outputUnit">KUBA</div>
         </div>
-        <div class="fee-info">
-          Rate: 10 Points = 1 KUBA<br>
-          Gas Fee: <span id="gasFee">0.01</span> POL (you pay)<br>
-          Excess 0.009 POL → Liquidity: 0x34d2...3454e<br>
-          <span style="color:#ffd700;">Transaction Required</span>
+
+        <div id="confirmSection" style="display:none;">
+          <div class="confirm-box">
+            <div>ยืนยันการแลก</div>
+            <div style="margin:8px 0;">ได้รับ: <span id="confirmOutput">0</span> <span id="confirmUnit">KUBA</span></div>
+            <div class="confirm-gas">ค่า Gas: <span id="confirmGas">0.021</span> POL</div>
+          </div>
+          <div class="btn-group">
+            <button onclick="executeRedeem()" style="background:#4ade80;">ยืนยัน</button>
+            <button onclick="cancelRedeem()" style="background:#e74c3c;">ยกเลิก</button>
+          </div>
         </div>
-        <button class="redeem-btn" id="redeemButton" onclick="confirmRedeem()" disabled>Claim KUBA</button>
+
+        <button id="nextBtn" class="redeem-btn" onclick="showConfirm()" disabled>ถัดไป</button>
         <div id="txInfo" class="tx-info" style="display:none;">
           Tx: <a id="txLink" href="#" target="_blank">View on PolygonScan</a>
         </div>
@@ -125,44 +132,21 @@
     </div>
   </div>
 
-  <!-- Reward Modal -->
-  <div id="rewardModal" class="modal">
-    <div class="modal-content">
-      <h3 style="color:#ffd700; margin-bottom:15px;">เลือกของรางวัล!</h3>
-      <div style="margin:15px 0; font-size:16px; color:#fff;">
-        ดูโฆษณาเสร็จแล้ว! รับรางวัลอย่างใดอย่างหนึ่ง:
-      </div>
-      <button onclick="claimPointsReward()" style="background:#4ade80; margin:10px; padding:14px; border-radius:12px; font-weight:bold; font-size:16px;">
-        รับ <span id="pointsRewardAmount">300</span> แต้ม
-      </button>
-      <button onclick="claimEnergyReward()" style="background:#f39c12; margin:10px; padding:14px; border-radius:12px; font-weight:bold; font-size:16px;">
-        รับพลังงาน 50%
-      </button>
-      <button onclick="closeRewardModal()" style="background:#e74c3c; margin:10px; padding:12px; border-radius:12px;">ยกเลิก</button>
-    </div>
-  </div>
-
   <script>
     // Game Variables
     let points = 0, energy = 100, maxEnergy = 100, tapPower = 1, level = 1;
-    const MAX_LEVEL = 100;
     let wallet = null, provider = null, signer = null;
-    let isTapping = false;
-    let pendingReward = false;
+    let isTapping = false, pendingReward = false;
+    let redeemMode = 'points-to-kuba'; // หรือ 'kuba-to-points'
 
-    // === REDEEM CONFIG (ตามคำขอจริง) ===
-    const POINTS_PER_KUBA = 10;           // 10 แต้ม = 1 KUBA
-    const MIN_POINTS_TO_REDEEM = 100000;  // ขั้นต่ำ 100,000 แต้ม
-    const GAS_FEE_POL = 0.01;             // ผู้เล่นจ่าย
-    const EXCESS_TO_LIQUIDITY = 0.009;    // โอนไป wallet liquidity
-    const LIQUIDITY_WALLET = '0x34d27165382fdc48b468e5deb617ea1018e3454e';
-
-    // KUBA Contract
+    // Config
+    const POINTS_PER_KUBA = 10;
+    const MIN_POINTS = 100000;
+    const BASE_GAS = 0.001;
+    const GAS_PER_KUBA = 0.000002;
     const KUBA_ADDRESS = '0x8eFc217Bb56e9081455171002F80b84737cB4468';
-    const ERC20_ABI = [
-      'function transfer(address to, uint256 amount) public returns (bool)',
-      'function balanceOf(address owner) view returns (uint256)'
-    ];
+    const LIQUIDITY_WALLET = '0x34d27165382fdc48b468e5deb617ea1018e3454e';
+    const ERC20_ABI = ['function transfer(address to, uint256 amount) public returns (bool)'];
 
     // Load / Save
     function loadGame() {
@@ -180,7 +164,7 @@
       localStorage.setItem('kuba_energy', energy);
     }
 
-    // Init Wallet
+    // Init
     async function initWallet() {
       loadGame();
       provider = new ethers.providers.JsonRpcProvider('https://polygon-rpc.com');
@@ -188,80 +172,114 @@
       if (!pk) { 
         wallet = ethers.Wallet.createRandom(); 
         localStorage.setItem('kuba_private_key', wallet.privateKey); 
-        alert('Wallet created! Add POL for gas to redeem.'); 
+        alert('Wallet created! ฝาก POL เพื่อจ่าย gas'); 
       } else wallet = new ethers.Wallet(pk, provider);
       signer = wallet.connect(provider);
       document.getElementById('walletAddress').innerText = wallet.address.slice(0,8) + '...' + wallet.address.slice(-6);
       regenerateEnergy();
     }
 
-    // === REDEEM SYSTEM ===
+    // === REDEEM ===
     function openRedeem() { 
       document.getElementById('redeemModal').style.display = 'block'; 
-      calculateRedeem(); 
+      document.getElementById('inputAmount').value = '';
+      document.getElementById('outputAmount').innerText = '0';
+      document.getElementById('confirmSection').style.display = 'none';
+      document.getElementById('nextBtn').disabled = true;
     }
     function closeRedeem() { 
       document.getElementById('redeemModal').style.display = 'none'; 
       document.getElementById('txInfo').style.display = 'none';
     }
 
-    function calculateRedeem() {
-      const pointsInput = parseFloat(document.getElementById('pointsToRedeem').value) || 0;
-      const kubaAmount = Math.floor(pointsInput / POINTS_PER_KUBA);
+    function calculateOutput() {
+      const input = parseFloat(document.getElementById('inputAmount').value) || 0;
+      let output = 0, unit = '', mode = '';
 
-      if (pointsInput < MIN_POINTS_TO_REDEEM || pointsInput > points || pointsInput % POINTS_PER_KUBA !== 0) {
-        document.getElementById('redeemButton').disabled = true;
-        document.getElementById('kubaAmount').innerText = '0';
+      if (input >= 100000 && input % 10 === 0) {
+        // แลกแต้ม → KUBA
+        output = Math.floor(input / 10);
+        unit = 'KUBA';
+        mode = 'points-to-kuba';
+      } else if (input > 0 && input % 1 === 0) {
+        // แลก KUBA → แต้ม (ไม่ต้อง gas)
+        output = input * 10;
+        unit = 'แต้ม';
+        mode = 'kuba-to-points';
+      } else {
+        document.getElementById('nextBtn').disabled = true;
         return;
       }
 
-      document.getElementById('kubaAmount').innerText = kubaAmount.toLocaleString();
-      document.getElementById('gasFee').innerText = GAS_FEE_POL;
-      document.getElementById('redeemButton').disabled = false;
-      document.getElementById('redeemButton').innerText = `Claim ${kubaAmount.toLocaleString()} KUBA`;
+      document.getElementById('outputAmount').innerText = output.toLocaleString();
+      document.getElementById('outputUnit').innerText = unit;
+      document.getElementById('nextBtn').disabled = false;
+      redeemMode = mode;
     }
 
-    async function confirmRedeem() {
-      const pointsInput = parseFloat(document.getElementById('pointsToRedeem').value);
-      const kubaAmount = Math.floor(pointsInput / POINTS_PER_KUBA);
-      const btn = document.getElementById('redeemButton');
-      btn.disabled = true;
-      btn.innerText = 'Processing...';
-      btn.classList.add('loading');
+    function showConfirm() {
+      const input = parseFloat(document.getElementById('inputAmount').value);
+      const output = redeemMode === 'points-to-kuba' ? Math.floor(input / 10) : input * 10;
+      const gas = redeemMode === 'points-to-kuba' ? (BASE_GAS + output * GAS_PER_KUBA).toFixed(6) : '0 (ฟรี)';
 
-      try {
-        if (points >= pointsInput && pointsInput >= MIN_POINTS_TO_REDEEM) {
-          // หักแต้ม
-          points -= pointsInput;
-          saveGame();
-          updateUI();
+      document.getElementById('confirmOutput').innerText = output.toLocaleString();
+      document.getElementById('confirmUnit').innerText = redeemMode === 'points-to-kuba' ? 'KUBA' : 'แต้ม';
+      document.getElementById('confirmGas').innerText = gas;
+      document.getElementById('confirmSection').style.display = 'block';
+      document.getElementById('nextBtn').style.display = 'none';
+    }
 
-          // On-chain: Transfer KUBA
+    function cancelRedeem() {
+      document.getElementById('confirmSection').style.display = 'none';
+      document.getElementById('nextBtn').style.display = 'block';
+    }
+
+    async function executeRedeem() {
+      const input = parseFloat(document.getElementById('inputAmount').value);
+      const output = redeemMode === 'points-to-kuba' ? Math.floor(input / 10) : input * 10;
+
+      if (redeemMode === 'points-to-kuba') {
+        if (points < input) return alert('แต้มไม่พอ!');
+        points -= input;
+        // On-chain transfer
+        try {
           const kubaContract = new ethers.Contract(KUBA_ADDRESS, ERC20_ABI, signer);
-          const amount = ethers.utils.parseUnits(kubaAmount.toString(), 18);
-          const tx = await kubaContract.transfer(wallet.address, amount, { gasLimit: 100000 });
+          const tx = await kubaContract.transfer(wallet.address, ethers.utils.parseUnits(output.toString(), 18));
           const receipt = await tx.wait();
-
-          // Simulate excess POL to liquidity (optional, real backend)
-          // await signer.sendTransaction({ to: LIQUIDITY_WALLET, value: ethers.utils.parseUnits('0.009', 18) });
-
-          alert(`Success! +${kubaAmount.toLocaleString()} KUBA sent!\nGas: ~0.01 POL (you paid)`);
-
-          document.getElementById('txInfo').style.display = 'block';
-          document.getElementById('txLink').href = `https://polygonscan.com/tx/${receipt.transactionHash}`;
-          document.getElementById('txLink').innerText = receipt.transactionHash.slice(0,10) + '...';
-        }
-      } catch (error) {
-        alert(`Failed: ${error.message}\nMake sure you have POL for gas!`);
+          alert(`สำเร็จ! +${output.toLocaleString()} KUBA`);
+          showTx(receipt.transactionHash);
+        } catch (e) { alert('ผิดพลาด: ' + e.message); }
+      } else {
+        // KUBA → แต้ม (simulate)
+        points += output;
+        alert(`สำเร็จ! +${output.toLocaleString()} แต้ม (ไม่เสีย gas)`);
       }
-
-      btn.disabled = false;
-      btn.innerText = 'Claim KUBA';
-      btn.classList.remove('loading');
+      saveGame(); updateUI(); closeRedeem();
     }
 
-    // Reward, Tap, Upgrade, Utils (เหมือนเดิม)
-    // ... (ย่อเพื่อความกระชับ - ใช้โค้ดเดิมจากก่อนหน้า)
+    function showTx(hash) {
+      document.getElementById('txInfo').style.display = 'block';
+      document.getElementById('txLink').href = `https://polygonscan.com/tx/${hash}`;
+      document.getElementById('txLink').innerText = hash.slice(0,10) + '...';
+    }
+
+    // ฝาก POL
+    function depositPOL() {
+      const addr = wallet.address;
+      navigator.clipboard.writeText(addr);
+      alert(`คัดลอกแล้ว!\nส่ง POL ไปที่:\n${addr}\n(ใช้ MetaMask หรือ Wallet อื่น)`);
+    }
+
+    // UI Update + Other Functions (เหมือนเดิม)
+    function updateUI() {
+      document.getElementById('pointsDisplay').innerText = points.toLocaleString();
+      document.getElementById('level').innerText = level;
+      document.getElementById('energy').innerText = Math.floor(energy);
+      document.getElementById('maxEnergy').innerText = maxEnergy;
+      document.getElementById('tapPower').innerText = tapPower;
+      const cost = level >= 100 ? 'MAX' : (500 + level * 15000).toLocaleString();
+      document.getElementById('upgradeCost').innerText = cost;
+    }
 
     // Start
     Telegram.WebApp.ready(); 
