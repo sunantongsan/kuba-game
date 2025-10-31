@@ -17,48 +17,49 @@
     h1 { font-size:28px; margin:15px 0; font-weight:bold; color:#ffd700; text-shadow:0 0 8px #ffd700; }
     
     button {
-      background:none; color:#fff; border:2px solid #ffd700; 
+      background:none; color:#fff; border:none; 
       padding:14px; border-radius:16px; font-weight:bold; font-size:16px; 
-      margin:10px auto; width:92%; box-shadow:0 0 15px rgba(255,215,0,0.2);
-      transition:0.2s; display:block;
+      margin:10px auto; width:92%; transition:0.2s; display:block;
     }
-    button:active { transform:scale(0.98); background:rgba(255,215,0,0.1); }
-    .redeem-btn { border-color:#9c88ff; color:#9c88ff; }
-    .reward-btn { border-color:#ff6b6b; color:#ff6b6b; }
-    .upgrade-btn { border-color:#f39c12; color:#f39c12; }
-    .refer-btn { border-color:#2ed573; color:#2ed573; }
-    .copy-btn { border-color:#5f27cd; color:#5f27cd; font-size:14px; }
-    .deposit-btn { border-color:#e67e22; color:#e67e22; font-size:14px; }
-    .switch-btn { border-color:#ffd700; color:#ffd700; font-size:14px; }
+    button:active { transform:scale(0.98); opacity:0.8; }
+    .redeem-btn { color:#9c88ff; }
+    .reward-btn { color:#ff6b6b; }
+    .upgrade-btn { color:#f39c12; }
+    .refer-btn { color:#2ed573; }
+    .deposit-btn { color:#e67e22; font-size:14px; }
+    .switch-btn { color:#ffd700; font-size:14px; }
+    .confirm-btn { background:#4ade80; color:#fff; border:none; }
+    .cancel-btn { background:#e74c3c; color:#fff; border:none; }
 
     .info { font-size:14px; margin:8px 0; color:#aaa; }
     .highlight { color:#ffd700; font-weight:bold; }
     .energy-text { color:#4ade80; font-weight:bold; }
 
     .bald { width:180px; height:180px; margin:25px auto; cursor:pointer; user-select:none; }
-    .bald img { width:100%; height:100%; border-radius:50%; transition:0.2s; box-shadow:0 0 20px rgba(255,215,0,0.4); }
+    .bald img { width:100%; height:100%; border-radius:50%; transition:0.2s; }
     .bald:active img { transform:scale(0.92); }
 
     .particle { position:absolute; font-size:26px; pointer-events:none; animation:fly 1s ease-out forwards; font-weight:bold; color:#ffd700; }
     @keyframes fly { to { transform:translateY(-120px); opacity:0; } }
 
     .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:999; overflow-y:auto; }
-    .modal-content { background:#1a1a2e; margin:5% auto; padding:20px; width:90%; border-radius:24px; text-align:center; max-width:400px; box-shadow:0 10px 30px rgba(0,0,0,0.5); }
+    .modal-content { background:#1a1a2e; margin:5% auto; padding:20px; width:90%; border-radius:24px; text-align:center; max-width:400px; }
     
-    .redeem-container { background:#0f0f1a; border-radius:20px; padding:20px; margin:15px 0; border:2px solid #ffd700; box-shadow:0 0 20px rgba(255,215,0,0.2); }
+    .redeem-container { padding:20px; margin:15px 0; }
     .redeem-title { font-size:22px; color:#ffd700; margin-bottom:15px; text-shadow:0 0 8px #ffd700; }
     
-    .input-group { background:#1a1a2e; border-radius:16px; padding:16px; margin:10px 0; text-align:left; border:1px solid #333; }
-    .input-group input { background:none; border:none; color:#fff; font-size:24px; text-align:right; width:60%; }
+    .input-group { padding:16px; margin:10px 0; text-align:left; }
+    .input-group input { background:none; border:none; color:#fff; font-size:24px; text-align:right; width:100%; }
     .input-group label { color:#aaa; font-size:14px; }
     
-    .confirm-box { background:#1a1a2e; border-radius:16px; padding:16px; margin:15px 0; text-align:left; border:1px solid #4ade80; }
+    .confirm-box { padding:16px; margin:15px 0; text-align:left; }
     .confirm-gas { color:#ff6b6b; font-weight:bold; }
     .btn-group { display:flex; gap:10px; }
-    .btn-group button { flex:1; margin:0; }
+    .btn-group button { flex:1; margin:0; padding:14px; border-radius:12px; font-weight:bold; }
 
     .close-btn { background:#e74c3c; margin:10px; padding:12px; border-radius:12px; font-size:14px; }
-    .tx-info { background:#1a1a2e; border-radius:12px; padding:10px; margin:10px 0; font-size:12px; color:#4ade80; word-break:break-all; }
+
+    .tx-info { padding:10px; margin:10px 0; font-size:12px; color:#4ade80; word-break:break-all; }
     .tx-info a { color:#4ade80; text-decoration:underline; }
   </style>
 </head>
@@ -93,12 +94,12 @@
       <div class="redeem-container">
         <h3 class="redeem-title">แลกเปลี่ยน</h3>
         
-        <button class="deposit-btn" onclick="depositPOL()" style="width:100%; margin:10px 0;">ฝาก POL (สำหรับ Gas)</button>
+        <button class="deposit-btn" onclick="depositPOL()">ฝาก POL (สำหรับ Gas)</button>
 
         <!-- ปุ่มสลับโหมด -->
         <div style="display:flex; gap:10px; margin:15px 0;">
-          <button id="modePoints" class="switch-btn" onclick="setMode('points-to-kuba')" style="flex:1; background:#ffd700; color:#000;">แต้ม → KUBA</button>
-          <button id="modeKuba" class="switch-btn" onclick="setMode('kuba-to-points')" style="flex:1;">KUBA → แต้ม</button>
+          <button id="modePoints" class="switch-btn" onclick="setMode('points-to-kuba')" style="flex:1; color:#ffd700;">แต้ม → KUBA</button>
+          <button id="modeKuba" class="switch-btn" onclick="setMode('kuba-to-points')" style="flex:1; color:#ffd700;">KUBA → แต้ม</button>
         </div>
 
         <div class="input-group">
@@ -119,12 +120,12 @@
             <div class="confirm-gas">ค่า Gas: <span id="confirmGas">0.021</span> POL</div>
           </div>
           <div class="btn-group">
-            <button onclick="executeRedeem()" style="background:#4ade80; border:none;">ยืนยัน</button>
-            <button onclick="cancelRedeem()" style="background:#e74c3c; border:none;">ยกเลิก</button>
+            <button class="confirm-btn" onclick="executeRedeem()">ยืนยัน</button>
+            <button class="cancel-btn" onclick="cancelRedeem()">ยกเลิก</button>
           </div>
         </div>
 
-        <button id="nextBtn" class="redeem-btn" onclick="showConfirm()" disabled style="background:none; border:2px solid #9c88ff; color:#9c88ff;">ถัดไป</button>
+        <button id="nextBtn" class="redeem-btn" onclick="checkAndShowConfirm()" disabled>ถัดไป</button>
         <div id="txInfo" class="tx-info" style="display:none;">
           Tx: <a id="txLink" href="#" target="_blank">ดูบน PolygonScan</a>
         </div>
@@ -140,13 +141,13 @@
       <div style="margin:15px 0; font-size:16px; color:#fff;">
         ดูโฆษณาเสร็จแล้ว! รับรางวัลอย่างใดอย่างหนึ่ง:
       </div>
-      <button onclick="claimPointsReward()" style="background:none; border:2px solid #4ade80; color:#4ade80; margin:10px; padding:14px; border-radius:12px; font-weight:bold; font-size:16px;">
+      <button onclick="claimPointsReward()" style="color:#4ade80; margin:10px; padding:14px; border-radius:12px; font-weight:bold; font-size:16px;">
         รับ <span id="pointsRewardAmount">300</span> แต้ม
       </button>
-      <button onclick="claimEnergyReward()" style="background:none; border:2px solid #f39c12; color:#f39c12; margin:10px; padding:14px; border-radius:12px; font-weight:bold; font-size:16px;">
+      <button onclick="claimEnergyReward()" style="color:#f39c12; margin:10px; padding:14px; border-radius:12px; font-weight:bold; font-size:16px;">
         รับพลังงาน 50%
       </button>
-      <button onclick="closeRewardModal()" style="background:#e74c3c; border:none; margin:10px; padding:12px; border-radius:12px;">ยกเลิก</button>
+      <button onclick="closeRewardModal()" style="background:#e74c3c; color:#fff; margin:10px; padding:12px; border-radius:12px;">ยกเลิก</button>
     </div>
   </div>
 
@@ -154,7 +155,7 @@
     // Game Variables
     let points = 0, energy = 100, maxEnergy = 100, tapPower = 1, level = 1;
     const MAX_LEVEL = 100;
-    let wallet = null, provider = null, signer = null;
+    let wallet = null, provider = null, signer = null, kubaContract = null;
     let isTapping = false, pendingReward = false;
     let redeemMode = 'points-to-kuba';
 
@@ -164,7 +165,10 @@
     const BASE_GAS = 0.001;
     const GAS_PER_KUBA = 0.000002;
     const KUBA_ADDRESS = '0x8eFc217Bb56e9081455171002F80b84737cB4468';
-    const ERC20_ABI = ['function transfer(address to, uint256 amount) public returns (bool)'];
+    const ERC20_ABI = [
+      'function balanceOf(address) view returns (uint256)',
+      'function transfer(address to, uint256 amount) public returns (bool)'
+    ];
 
     // Load / Save
     function loadGame() {
@@ -193,6 +197,7 @@
         alert('สร้าง Wallet แล้ว! ฝาก POL เพื่อจ่าย gas'); 
       } else wallet = new ethers.Wallet(pk, provider);
       signer = wallet.connect(provider);
+      kubaContract = new ethers.Contract(KUBA_ADDRESS, ERC20_ABI, provider);
       regenerateEnergy();
       setupTap();
     }
@@ -248,7 +253,7 @@
       document.getElementById('confirmSection').style.display = 'none';
       document.getElementById('nextBtn').style.display = 'block';
       document.getElementById('nextBtn').disabled = true;
-      setMode('points-to-kuba'); // เริ่มต้น
+      setMode('points-to-kuba');
     }
     function closeRedeem() { 
       document.getElementById('redeemModal').style.display = 'none'; 
@@ -258,10 +263,8 @@
     function setMode(mode) {
       redeemMode = mode;
       const isPoints = mode === 'points-to-kuba';
-      document.getElementById('modePoints').style.background = isPoints ? '#ffd700' : 'none';
-      document.getElementById('modePoints').style.color = isPoints ? '#000' : '#ffd700';
-      document.getElementById('modeKuba').style.background = !isPoints ? '#ffd700' : 'none';
-      document.getElementById('modeKuba').style.color = !isPoints ? '#000' : '#ffd700';
+      document.getElementById('modePoints').style.opacity = isPoints ? '1' : '0.6';
+      document.getElementById('modeKuba').style.opacity = !isPoints ? '1' : '0.6';
 
       document.getElementById('inputLabel').innerText = isPoints 
         ? 'พิมพ์จำนวนแต้ม (ขั้นต่ำ 100,000)' 
@@ -296,11 +299,28 @@
       document.getElementById('outputUnit').innerText = unit;
     }
 
-    function showConfirm() {
+    async function checkAndShowConfirm() {
       const input = parseFloat(document.getElementById('inputAmount').value);
       const output = redeemMode === 'points-to-kuba' ? Math.floor(input / 10) : input * 10;
-      const gas = redeemMode === 'points-to-kuba' ? (BASE_GAS + output * GAS_PER_KUBA).toFixed(6) : '0 (ฟรี)';
 
+      if (redeemMode === 'points-to-kuba') {
+        if (points < input) return alert('แต้มไม่พอ!');
+        // เช็ค POL balance
+        const polBalance = await provider.getBalance(wallet.address);
+        const gas = BASE_GAS + output * GAS_PER_KUBA;
+        if (parseFloat(ethers.utils.formatEther(polBalance)) < gas) {
+          return alert(`POL ไม่พอ! ต้องการ ~${gas.toFixed(6)} POL`);
+        }
+      } else {
+        // เช็ค KUBA balance
+        const kubaBalance = await kubaContract.balanceOf(wallet.address);
+        const kubaNeeded = ethers.utils.parseUnits(input.toString(), 18);
+        if (kubaBalance.lt(kubaNeeded)) {
+          return alert(`KUBA ไม่พอ! มี ${ethers.utils.formatUnits(kubaBalance, 18)} KUBA`);
+        }
+      }
+
+      const gas = redeemMode === 'points-to-kuba' ? (BASE_GAS + output * GAS_PER_KUBA).toFixed(6) : '0 (ฟรี)';
       document.getElementById('confirmOutput').innerText = output.toLocaleString();
       document.getElementById('confirmUnit').innerText = redeemMode === 'points-to-kuba' ? 'KUBA' : 'แต้ม';
       document.getElementById('confirmGas').innerText = gas;
@@ -318,11 +338,9 @@
       const output = redeemMode === 'points-to-kuba' ? Math.floor(input / 10) : input * 10;
 
       if (redeemMode === 'points-to-kuba') {
-        if (points < input) return alert('แต้มไม่พอ!');
         points -= input;
         try {
-          const kubaContract = new ethers.Contract(KUBA_ADDRESS, ERC20_ABI, signer);
-          const tx = await kubaContract.transfer(wallet.address, ethers.utils.parseUnits(output.toString(), 18));
+          const tx = await kubaContract.connect(signer).transfer(wallet.address, ethers.utils.parseUnits(output.toString(), 18));
           const receipt = await tx.wait();
           alert(`สำเร็จ! +${output.toLocaleString()} KUBA`);
           showTx(receipt.transactionHash);
@@ -343,10 +361,10 @@
     function depositPOL() {
       const addr = wallet.address;
       navigator.clipboard.writeText(addr);
-      alert(`คัดลอกแล้ว!\nส่ง POL ไปที่:\n${addr}\n(ใช้ MetaMask หรือ Wallet อื่น)`);
+      alert(`คัดลอกแล้ว!\nส่ง POL ไปที่:\n${addr}`);
     }
 
-    // === REWARD, UPGRADE, ETC. ===
+    // === REWARD, UPGRADE ===
     function showRewardChoice() {
       const btn = document.getElementById('rewardButton');
       btn.disabled = true;
