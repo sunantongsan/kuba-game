@@ -67,7 +67,7 @@
     <h1>KUBAMINER</h1>
 
     <button class="exchange-btn" onclick="openExchange()">SWAP HUB</button>
-    <button class="reward-btn" id="rewardButton" onclick="claimReward()">WATCH AD</button>
+    <button class="reward-btn" id="rewardButton" onclick="showRewardChoice()">Get Rewards: Points, Energy</button>
     <div id="rewardCooldown" class="info">Ready</div>
 
     <div class="bald" id="baldHead">
@@ -127,14 +127,30 @@
     </div>
   </div>
 
+  <!-- Reward Choice Modal -->
+  <div id="rewardModal" class="modal">
+    <div class="modal-content">
+      <h3 style="color:#ffd700; margin-bottom:15px;">เลือกของรางวัล!</h3>
+      <div style="margin:15px 0; font-size:16px; color:#fff;">
+        ดูโฆษณาเสร็จแล้ว! รับรางวัลอย่างใดอย่างหนึ่ง:
+      </div>
+      <button onclick="claimPointsReward()" style="background:#4ade80; margin:10px; padding:14px; border-radius:12px; font-weight:bold; font-size:16px;">
+        รับ <span id="pointsRewardAmount">300</span> แต้ม
+      </button>
+      <button onclick="claimEnergyReward()" style="background:#f39c12; margin:10px; padding:14px; border-radius:12px; font-weight:bold; font-size:16px;">
+        รับพลังงาน <span id="energyRewardPercent">50</span>%
+      </button>
+      <button onclick="closeRewardModal()" style="background:#e74c3c; margin:10px; padding:12px; border-radius:12px;">ยกเลิก</button>
+    </div>
+  </div>
+
   <script>
     // Game Variables
     let points = 0, energy = 100, maxEnergy = 100, tapPower = 1, level = 1;
     const MAX_LEVEL = 100;
     let wallet = null, provider = null;
-    let rewardCooldown = 0;
-    const REWARD_COOLDOWN = 30;
-    let isTapping = false; // ป้องกันกดรัว
+    let isTapping = false;
+    let pendingReward = false;
 
     // Load / Save
     function loadGame() {
@@ -143,7 +159,7 @@
       tapPower = level;
       maxEnergy = level * 100;
       energy = parseFloat(localStorage.getItem('kuba_energy')) || maxEnergy;
-      energy = Math.min(energy, maxEnergy); // ป้องกันเกิน
+      energy = Math.min(energy, maxEnergy);
       updateUI();
     }
     function saveGame() { 
@@ -164,45 +180,55 @@
       document.getElementById('walletAddress').innerText = wallet.address.slice(0,8) + '...' + wallet.address.slice(-6);
       provider = new ethers.providers.JsonRpcProvider('https://polygon-rpc.com');
       updateTokenDisplay();
-      startRewardCooldown();
-      regenerateEnergy(); // เริ่มฟื้นพลังงาน
+      regenerateEnergy();
     }
 
-    // Reward System (Real Ads)
-    function startRewardCooldown() {
-      const btn = document.getElementById('rewardButton');
-      const cd = document.getElementById('rewardCooldown');
-      const interval = setInterval(() => {
-        if (rewardCooldown > 0) {
-          rewardCooldown--;
-          btn.disabled = true;
-          cd.innerText = `Wait ${rewardCooldown}s`;
-        } else {
-          btn.disabled = false;
-          cd.innerText = 'Ready';
-          clearInterval(interval);
-        }
-      }, 1000);
-    }
-
-    function claimReward() {
+    // Reward System (No Cooldown)
+    function showRewardChoice() {
       const btn = document.getElementById('rewardButton');
       btn.disabled = true;
       document.getElementById('rewardCooldown').innerText = 'Loading ad...';
 
       show_10111635().then(() => {
-        const energyReward = Math.floor(maxEnergy * 0.5);
-        energy = Math.min(energy + energyReward, maxEnergy);
-        points += 200;
-        saveGame(); updateUI();
-        alert(`Ad completed!\n+${energyReward} Energy\n+200 Points!`);
-        rewardCooldown = REWARD_COOLDOWN;
-        startRewardCooldown();
+        pendingReward = true;
+        updateRewardAmounts();
+        document.getElementById('rewardModal').style.display = 'block';
+        btn.disabled = false;
+        document.getElementById('rewardCooldown').innerText = 'Ready';
       }).catch(() => {
-        alert('Please watch the ad fully to get reward');
+        alert('กรุณาดูโฆษณาให้จบเพื่อรับรางวัล');
         btn.disabled = false;
         document.getElementById('rewardCooldown').innerText = 'Ready';
       });
+    }
+
+    function updateRewardAmounts() {
+      const pointsReward = 300 + (level * 10);
+      document.getElementById('pointsRewardAmount').innerText = pointsReward.toLocaleString();
+      document.getElementById('energyRewardPercent').innerText = '50';
+    }
+
+    function claimPointsReward() {
+      if (!pendingReward) return;
+      const reward = 300 + (level * 10);
+      points += reward;
+      saveGame(); updateUI();
+      alert(`ได้รับ ${reward.toLocaleString()} แต้ม!`);
+      closeRewardModal();
+    }
+
+    function claimEnergyReward() {
+      if (!pendingReward) return;
+      const reward = Math.floor(maxEnergy * 0.5);
+      energy = Math.min(energy + reward, maxEnergy);
+      saveGame(); updateUI();
+      alert(`ได้รับพลังงาน ${reward.toLocaleString()} หน่วย!`);
+      closeRewardModal();
+    }
+
+    function closeRewardModal() {
+      document.getElementById('rewardModal').style.display = 'none';
+      pendingReward = false;
     }
 
     // Swap System
@@ -270,7 +296,7 @@
       if (isTapping) return;
       isTapping = true;
 
-      const energyCost = tapPower; // ลดตาม level
+      const energyCost = tapPower;
       if (energy < energyCost) {
         alert('พลังงานไม่พอ!');
         isTapping = false;
@@ -288,7 +314,7 @@
         regenerateEnergy();
       }
 
-      setTimeout(() => { isTapping = false; }, 100); // ป้องกันกดรัว
+      setTimeout(() => { isTapping = false; }, 100);
     });
 
     function upgradeCharacter() {
@@ -296,7 +322,7 @@
       const cost = level === 99 ? 1500000 : 500 + level * 15000;
       if (points < cost) { alert(`Need ${cost.toLocaleString()} Points!`); return; }
       points -= cost; level++; tapPower = level; maxEnergy = level * 100;
-      energy = Math.min(energy, maxEnergy); // ปรับพลังงานสูงสุด
+      energy = Math.min(energy, maxEnergy);
       saveGame(); updateUI();
     }
 
@@ -317,7 +343,7 @@
         } else {
           clearInterval(interval);
         }
-      }, 1000); // ฟื้น 1 ทุกวินาที
+      }, 1000);
     }
 
     function copyAddress() { 
