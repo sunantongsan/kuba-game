@@ -134,26 +134,38 @@
     let wallet = null, provider = null;
     let rewardCooldown = 0;
     const REWARD_COOLDOWN = 30;
+    let isTapping = false; // ป้องกันกดรัว
 
     // Load / Save
     function loadGame() {
       points = parseFloat(localStorage.getItem('kuba_points')) || 0;
       level = parseInt(localStorage.getItem('kuba_level')) || 1;
-      tapPower = level; maxEnergy = level * 100; energy = Math.min(energy, maxEnergy);
+      tapPower = level;
+      maxEnergy = level * 100;
+      energy = parseFloat(localStorage.getItem('kuba_energy')) || maxEnergy;
+      energy = Math.min(energy, maxEnergy); // ป้องกันเกิน
       updateUI();
     }
-    function saveGame() { localStorage.setItem('kuba_points', points); localStorage.setItem('kuba_level', level); }
+    function saveGame() { 
+      localStorage.setItem('kuba_points', points); 
+      localStorage.setItem('kuba_level', level); 
+      localStorage.setItem('kuba_energy', energy);
+    }
 
     // Init Wallet
     async function initWallet() {
       loadGame();
       let pk = localStorage.getItem('kuba_private_key');
-      if (!pk) { wallet = ethers.Wallet.createRandom(); localStorage.setItem('kuba_private_key', wallet.privateKey); alert('Wallet created!'); }
-      else wallet = new ethers.Wallet(pk);
+      if (!pk) { 
+        wallet = ethers.Wallet.createRandom(); 
+        localStorage.setItem('kuba_private_key', wallet.privateKey); 
+        alert('Wallet created!'); 
+      } else wallet = new ethers.Wallet(pk);
       document.getElementById('walletAddress').innerText = wallet.address.slice(0,8) + '...' + wallet.address.slice(-6);
       provider = new ethers.providers.JsonRpcProvider('https://polygon-rpc.com');
       updateTokenDisplay();
       startRewardCooldown();
+      regenerateEnergy(); // เริ่มฟื้นพลังงาน
     }
 
     // Reward System (Real Ads)
@@ -178,9 +190,7 @@
       btn.disabled = true;
       document.getElementById('rewardCooldown').innerText = 'Loading ad...';
 
-      // Show real ad from Monetag
       show_10111635().then(() => {
-        // Ad finished → Give reward
         const energyReward = Math.floor(maxEnergy * 0.5);
         energy = Math.min(energy + energyReward, maxEnergy);
         points += 200;
@@ -189,7 +199,6 @@
         rewardCooldown = REWARD_COOLDOWN;
         startRewardCooldown();
       }).catch(() => {
-        // Ad skipped
         alert('Please watch the ad fully to get reward');
         btn.disabled = false;
         document.getElementById('rewardCooldown').innerText = 'Ready';
@@ -241,7 +250,7 @@
     function updateUI() {
       document.getElementById('pointsDisplay').innerText = points.toLocaleString();
       document.getElementById('level').innerText = level;
-      document.getElementById('energy').innerText = energy;
+      document.getElementById('energy').innerText = Math.floor(energy);
       document.getElementById('maxEnergy').innerText = maxEnergy;
       document.getElementById('tapPower').innerText = tapPower;
       const cost = level >= MAX_LEVEL ? 'MAX' : (level === 99 ? 1500000 : 500 + level * 15000).toLocaleString();
@@ -252,22 +261,43 @@
     function openExchange() { document.getElementById('exchangeModal').style.display = 'block'; calculateSwap(); }
     function closeExchange() { document.getElementById('exchangeModal').style.display = 'none'; }
     function confirmSwap() {
-      alert(`Swapping ${document.getElementById('fromAmount').value} ${fromToken} → ${document.getElementById('toAmount').innerText} ${toToken}`);
+      alert(`Swapping ${document.getElementById('fromAmount').value} ${fromToken} to ${document.getElementById('toAmount').innerText} ${toToken}`);
       closeExchange();
     }
 
     // Tap & Upgrade
     document.getElementById('baldHead').addEventListener('click', () => {
-      if (energy <= 0) return;
-      energy--; points += tapPower; createParticle('+' + tapPower); saveGame(); updateUI();
-      if (energy === 0) regenerateEnergy();
+      if (isTapping) return;
+      isTapping = true;
+
+      const energyCost = tapPower; // ลดตาม level
+      if (energy < energyCost) {
+        alert('พลังงานไม่พอ!');
+        isTapping = false;
+        return;
+      }
+
+      energy -= energyCost;
+      points += tapPower;
+      createParticle('+' + tapPower);
+      saveGame();
+      updateUI();
+
+      if (energy <= 0) {
+        energy = 0;
+        regenerateEnergy();
+      }
+
+      setTimeout(() => { isTapping = false; }, 100); // ป้องกันกดรัว
     });
 
     function upgradeCharacter() {
       if (level >= MAX_LEVEL) { alert('Max Level Reached!'); return; }
       const cost = level === 99 ? 1500000 : 500 + level * 15000;
       if (points < cost) { alert(`Need ${cost.toLocaleString()} Points!`); return; }
-      points -= cost; level++; tapPower = level; maxEnergy = level * 100; saveGame(); updateUI();
+      points -= cost; level++; tapPower = level; maxEnergy = level * 100;
+      energy = Math.min(energy, maxEnergy); // ปรับพลังงานสูงสุด
+      saveGame(); updateUI();
     }
 
     // Utils
@@ -278,18 +308,31 @@
       document.body.appendChild(p); 
       setTimeout(() => p.remove(), 1000); 
     }
+
     function regenerateEnergy() { 
-      const i = setInterval(() => { 
-        if (energy < maxEnergy) { energy++; updateUI(); } 
-        else clearInterval(i); 
-      }, 1000); 
+      const interval = setInterval(() => { 
+        if (energy < maxEnergy) { 
+          energy += 1; 
+          updateUI(); 
+        } else {
+          clearInterval(interval);
+        }
+      }, 1000); // ฟื้น 1 ทุกวินาที
     }
-    function copyAddress() { navigator.clipboard.writeText(wallet.address); alert('Copied!'); }
-    function openReferralAd() { window.open('https://sunantongsan.github.io/kuba-game/share-ad.html', '_blank'); }
+
+    function copyAddress() { 
+      navigator.clipboard.writeText(wallet.address); 
+      alert('Copied!'); 
+    }
+
+    function openReferralAd() { 
+      window.open('https://sunantongsan.github.io/kuba-game/share-ad.html', '_blank'); 
+    }
 
     // Start Game
-    Telegram.WebApp.ready(); Telegram.WebApp.expand(); 
-    initWallet(); regenerateEnergy();
+    Telegram.WebApp.ready(); 
+    Telegram.WebApp.expand(); 
+    initWallet();
   </script>
 </body>
 </html>
