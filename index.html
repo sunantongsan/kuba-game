@@ -11,9 +11,10 @@
     * { margin:0; padding:0; box-sizing:border-box; }
     body { background:#0f0f1a; color:#fff; font-family:Arial, sans-serif; text-align:center; padding:10px; overflow:hidden; }
     .container { max-width:400px; margin:auto; }
-    .topbar { display:flex; justify-content:space-between; padding:15px 0; font-weight:bold; }
-    .topbar .left { color:#ffd700; font-size:16px; }
-    .topbar .right { color:#4ade80; font-size:16px; }
+    .topbar { display:flex; justify-content:space-between; align-items:flex-start; padding:10px 0; font-size:14px; }
+    .topbar .left { color:#ffd700; font-weight:bold; }
+    .topbar .right { text-align:right; line-height:1.4; color:#aaa; font-size:12px; }
+
     h1 { font-size:28px; margin:15px 0; font-weight:bold; color:#ffd700; text-shadow:0 0 8px #ffd700; }
     
     button {
@@ -26,10 +27,6 @@
     .reward-btn { color:#ff6b6b; }
     .upgrade-btn { color:#f39c12; }
     .refer-btn { color:#2ed573; }
-    .deposit-btn { color:#e67e22; font-size:14px; }
-    .switch-btn { color:#ffd700; font-size:14px; }
-    .confirm-btn { background:#4ade80; color:#fff; border:none; }
-    .cancel-btn { background:#e74c3c; color:#fff; border:none; }
 
     .info { font-size:14px; margin:8px 0; color:#aaa; }
     .highlight { color:#ffd700; font-weight:bold; }
@@ -61,20 +58,26 @@
 
     .tx-info { padding:10px; margin:10px 0; font-size:12px; color:#4ade80; word-break:break-all; }
     .tx-info a { color:#4ade80; text-decoration:underline; }
+
+    .balance-kuba { color:#ffd700; font-weight:bold; }
+    .balance-pol { color:#9c88ff; }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="topbar">
       <div class="left">Points: <span class="highlight" id="pointsDisplay">0</span></div>
-      <div class="right">Level: <span class="highlight" id="level">1</span></div>
+      <div class="right">
+        <div>KUBA: <span class="balance-kuba" id="kubaBalance">0</span></div>
+        <div>POL: <span class="balance-pol" id="polBalance">0</span></div>
+      </div>
     </div>
 
     <h1>KUBAMINER</h1>
 
     <button class="redeem-btn" onclick="openRedeem()">แลกเปลี่ยน</button>
     <button class="reward-btn" id="rewardButton" onclick="showRewardChoice()">รับรางวัล</button>
-    <div id="rewardCooldown" class="info">พร้อม</div>
+    <div class="info" style="margin:0 0 15px 0;">Level: <span class="highlight" id="level">1</span></div>
 
     <div class="bald" id="baldHead">
       <img id="baldImg" src="bald.png" alt="Tap" onerror="this.src='https://via.placeholder.com/300?text=TAP'" />
@@ -94,7 +97,7 @@
       <div class="redeem-container">
         <h3 class="redeem-title">แลกเปลี่ยน</h3>
         
-        <button class="deposit-btn" onclick="depositPOL()">ฝาก POL (สำหรับ Gas)</button>
+        <button class="deposit-btn" onclick="depositPOL()" style="color:#e67e22; font-size:14px;">ฝาก POL (สำหรับ Gas)</button>
 
         <!-- ปุ่มสลับโหมด -->
         <div style="display:flex; gap:10px; margin:15px 0;">
@@ -120,8 +123,8 @@
             <div class="confirm-gas">ค่า Gas: <span id="confirmGas">0.021</span> POL</div>
           </div>
           <div class="btn-group">
-            <button class="confirm-btn" onclick="executeRedeem()">ยืนยัน</button>
-            <button class="cancel-btn" onclick="cancelRedeem()">ยกเลิก</button>
+            <button style="background:#4ade80; color:#fff; border:none;" onclick="executeRedeem()">ยืนยัน</button>
+            <button style="background:#e74c3c; color:#fff; border:none;" onclick="cancelRedeem()">ยกเลิก</button>
           </div>
         </div>
 
@@ -200,6 +203,21 @@
       kubaContract = new ethers.Contract(KUBA_ADDRESS, ERC20_ABI, provider);
       regenerateEnergy();
       setupTap();
+      updateBalances();
+      setInterval(updateBalances, 10000);
+    }
+
+    // === BALANCE UPDATE ===
+    async function updateBalances() {
+      try {
+        const kubaBal = await kubaContract.balanceOf(wallet.address);
+        const polBal = await provider.getBalance(wallet.address);
+        document.getElementById('kubaBalance').innerText = parseFloat(ethers.utils.formatUnits(kubaBal, 18)).toFixed(4);
+        document.getElementById('polBalance').innerText = parseFloat(ethers.utils.formatEther(polBal)).toFixed(6);
+      } catch (e) {
+        document.getElementById('kubaBalance').innerText = '0';
+        document.getElementById('polBalance').innerText = '0';
+      }
     }
 
     // === TAP SYSTEM ===
@@ -305,14 +323,12 @@
 
       if (redeemMode === 'points-to-kuba') {
         if (points < input) return alert('แต้มไม่พอ!');
-        // เช็ค POL balance
         const polBalance = await provider.getBalance(wallet.address);
         const gas = BASE_GAS + output * GAS_PER_KUBA;
         if (parseFloat(ethers.utils.formatEther(polBalance)) < gas) {
           return alert(`POL ไม่พอ! ต้องการ ~${gas.toFixed(6)} POL`);
         }
       } else {
-        // เช็ค KUBA balance
         const kubaBalance = await kubaContract.balanceOf(wallet.address);
         const kubaNeeded = ethers.utils.parseUnits(input.toString(), 18);
         if (kubaBalance.lt(kubaNeeded)) {
@@ -344,6 +360,7 @@
           const receipt = await tx.wait();
           alert(`สำเร็จ! +${output.toLocaleString()} KUBA`);
           showTx(receipt.transactionHash);
+          updateBalances();
         } catch (e) { alert('ผิดพลาด: ' + e.message); }
       } else {
         points += output;
@@ -368,18 +385,15 @@
     function showRewardChoice() {
       const btn = document.getElementById('rewardButton');
       btn.disabled = true;
-      document.getElementById('rewardCooldown').innerText = 'โหลดโฆษณา...';
 
       show_10111635().then(() => {
         pendingReward = true;
         updateRewardAmounts();
         document.getElementById('rewardModal').style.display = 'block';
         btn.disabled = false;
-        document.getElementById('rewardCooldown').innerText = 'พร้อม';
       }).catch(() => {
         alert('กรุณาดูโฆษณาให้จบ');
         btn.disabled = false;
-        document.getElementById('rewardCooldown').innerText = 'พร้อม';
       });
     }
 
