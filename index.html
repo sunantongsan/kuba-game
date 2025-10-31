@@ -23,9 +23,10 @@
       margin:10px auto; width:92%; transition:0.2s; display:block;
     }
     button:active { transform:scale(0.98); opacity:0.8; }
-    .redeem-btn { color:#9c88ff; }
+    .deposit-btn { color:#4ade80; }
+    .withdraw-btn { color:#f39c12; }
     .reward-btn { color:#ff6b6b; }
-    .upgrade-btn { color:#f39c12; }
+    .upgrade-btn { color:#9c88ff; }
     .refer-btn { color:#2ed573; }
 
     .info { font-size:14px; margin:8px 0; color:#aaa; }
@@ -44,21 +45,14 @@
     
     .redeem-container { padding:20px; margin:15px 0; }
     .redeem-title { font-size:22px; color:#ffd700; margin-bottom:15px; text-shadow:0 0 8px #ffd700; }
-    
+    .contract-info { color:#aaa; font-size:12px; margin:10px 0; word-break:break-all; }
+    .contract-info a { color:#4ade80; text-decoration:underline; }
     .input-group { padding:16px; margin:10px 0; text-align:left; }
     .input-group input { background:none; border:none; color:#fff; font-size:24px; text-align:right; width:100%; }
     .input-group label { color:#aaa; font-size:14px; }
-    
-    .confirm-box { padding:16px; margin:15px 0; text-align:left; }
-    .confirm-gas { color:#ff6b6b; font-weight:bold; }
-    .btn-group { display:flex; gap:10px; }
-    .btn-group button { flex:1; margin:0; padding:14px; border-radius:12px; font-weight:bold; }
-
     .close-btn { background:#e74c3c; margin:10px; padding:12px; border-radius:12px; font-size:14px; }
-
     .tx-info { padding:10px; margin:10px 0; font-size:12px; color:#4ade80; word-break:break-all; }
     .tx-info a { color:#4ade80; text-decoration:underline; }
-
     .balance-kuba { color:#ffd700; font-weight:bold; }
     .balance-pol { color:#9c88ff; }
   </style>
@@ -75,7 +69,7 @@
 
     <h1>KUBAMINER</h1>
 
-    <button class="redeem-btn" onclick="openRedeem()">แลกเปลี่ยน</button>
+    <button class="deposit-btn" onclick="openWallet()">ฝาก/ถอน</button>
     <button class="reward-btn" id="rewardButton" onclick="showRewardChoice()">รับรางวัล</button>
     <div class="info" style="margin:0 0 15px 0;">Level: <span class="highlight" id="level">1</span></div>
 
@@ -91,49 +85,41 @@
     <button class="refer-btn" onclick="openReferralAd()">รับ Airdrop!</button>
   </div>
 
-  <!-- Redeem Modal -->
-  <div id="redeemModal" class="modal">
+  <!-- Wallet Modal -->
+  <div id="walletModal" class="modal">
     <div class="modal-content">
       <div class="redeem-container">
-        <h3 class="redeem-title">แลกเปลี่ยน</h3>
-        
-        <button class="deposit-btn" onclick="depositPOL()" style="color:#e67e22; font-size:14px;">ฝาก POL (สำหรับ Gas)</button>
+        <h3 class="redeem-title">กระเป๋าเงิน</h3>
+        <div class="contract-info">
+          <strong>Contract KUBA:</strong> <a href="https://polygonscan.com/address/0x8eFc217Bb56e9081455171002F80b84737cB4468" target="_blank">0x8eFc217Bb56e9081455171002F80b84737cB4468</a><br>
+          <strong>ซื้อ KUBA:</strong> <a href="https://app.uniswap.org/#/swap?chain=polygon&inputCurrency=0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270&outputCurrency=0x8eFc217Bb56e9081455171002F80b84737cB4468" target="_blank">Uniswap</a><br>
+          <strong>ฝากไปที่:</strong> <span id="gameWalletAddress">0x...</span> <button onclick="copyGameWallet()">คัดลอก</button>
+        </div>
 
-        <!-- ปุ่มสลับโหมด -->
         <div style="display:flex; gap:10px; margin:15px 0;">
-          <button id="modePoints" class="switch-btn" onclick="setMode('points-to-kuba')" style="flex:1; color:#ffd700;">แต้ม → KUBA</button>
-          <button id="modeKuba" class="switch-btn" onclick="setMode('kuba-to-points')" style="flex:1; color:#ffd700;">KUBA → แต้ม</button>
+          <button class="deposit-btn" onclick="setMode('deposit-kuba')">ฝาก KUBA</button>
+          <button class="withdraw-btn" onclick="setMode('withdraw-kuba')">ถอน KUBA</button>
+          <button class="deposit-btn" onclick="setMode('deposit-pol')">ฝาก POL</button>
+          <button class="withdraw-btn" onclick="setMode('withdraw-pol')">ถอน POL</button>
         </div>
 
         <div class="input-group">
-          <label id="inputLabel">พิมพ์จำนวนแต้ม (ขั้นต่ำ 100,000)</label>
-          <input type="number" id="inputAmount" placeholder="100000" oninput="calculateOutput()">
+          <label id="inputLabel">จำนวน</label>
+          <input type="number" id="amount" placeholder="1000" oninput="calculateOutput()">
         </div>
 
         <div class="input-group">
-          <label>คุณจะได้รับ</label>
+          <label id="outputLabel">คุณจะได้รับ/ใช้</label>
           <div style="font-size:28px; color:#4ade80; text-align:right;" id="outputAmount">0</div>
-          <div style="font-size:14px; color:#aaa; text-align:right;" id="outputUnit">KUBA</div>
+          <div style="font-size:14px; color:#aaa; text-align:right;" id="outputUnit">แต้ม</div>
         </div>
 
-        <div id="confirmSection" style="display:none;">
-          <div class="confirm-box">
-            <div>ยืนยันการแลก</div>
-            <div style="margin:8px 0;">ได้รับ: <span id="confirmOutput">0</span> <span id="confirmUnit">KUBA</span></div>
-            <div class="confirm-gas">ค่า Gas: <span id="confirmGas">0.021</span> POL</div>
-          </div>
-          <div class="btn-group">
-            <button style="background:#4ade80; color:#fff; border:none;" onclick="executeRedeem()">ยืนยัน</button>
-            <button style="background:#e74c3c; color:#fff; border:none;" onclick="cancelRedeem()">ยกเลิก</button>
-          </div>
-        </div>
-
-        <button id="nextBtn" class="redeem-btn" onclick="checkAndShowConfirm()" disabled>ถัดไป</button>
+        <button style="background:#4ade80; color:#fff;" onclick="executeAction()">ดำเนินการ</button>
         <div id="txInfo" class="tx-info" style="display:none;">
           Tx: <a id="txLink" href="#" target="_blank">ดูบน PolygonScan</a>
         </div>
       </div>
-      <button class="close-btn" onclick="closeRedeem()">ปิด</button>
+      <button class="close-btn" onclick="closeWallet()">ปิด</button>
     </div>
   </div>
 
@@ -160,17 +146,16 @@
     const MAX_LEVEL = 100;
     let wallet = null, provider = null, signer = null, kubaContract = null;
     let isTapping = false, pendingReward = false;
-    let redeemMode = 'points-to-kuba';
+    let mode = 'deposit-kuba';
 
     // Config
-    const POINTS_PER_KUBA = 10;
-    const MIN_POINTS = 100000;
-    const BASE_GAS = 0.001;
-    const GAS_PER_KUBA = 0.000002;
+    const POINTS_PER_KUBA = 10000; // 1 KUBA = 10,000 แต้ม
     const KUBA_ADDRESS = '0x8eFc217Bb56e9081455171002F80b84737cB4468';
+    const GAME_WALLET = 'YOUR_GAME_WALLET_ADDRESS'; // ใส่ Wallet Address ที่เก็บ KUBA/POL
     const ERC20_ABI = [
       'function balanceOf(address) view returns (uint256)',
-      'function transfer(address to, uint256 amount) public returns (bool)'
+      'function transfer(address to, uint256 amount) public returns (bool)',
+      'function approve(address spender, uint256 amount) public returns (bool)'
     ];
 
     // Load / Save
@@ -192,15 +177,12 @@
     // Init
     async function initWallet() {
       loadGame();
-      provider = new ethers.providers.JsonRpcProvider('https://polygon-rpc.com');
-      let pk = localStorage.getItem('kuba_private_key');
-      if (!pk) { 
-        wallet = ethers.Wallet.createRandom(); 
-        localStorage.setItem('kuba_private_key', wallet.privateKey); 
-        alert('สร้าง Wallet แล้ว! ฝาก POL เพื่อจ่าย gas'); 
-      } else wallet = new ethers.Wallet(pk, provider);
-      signer = wallet.connect(provider);
-      kubaContract = new ethers.Contract(KUBA_ADDRESS, ERC20_ABI, signer); // ใช้ signer!
+      provider = new ethers.providers.Web3Provider(window.ethereum || new ethers.providers.JsonRpcProvider('https://polygon-rpc.com'));
+      await provider.send("eth_requestAccounts", []);
+      signer = provider.getSigner();
+      wallet = { address: await signer.getAddress() };
+      kubaContract = new ethers.Contract(KUBA_ADDRESS, ERC20_ABI, signer);
+      document.getElementById('gameWalletAddress').innerText = GAME_WALLET;
       regenerateEnergy();
       setupTap();
       updateBalances();
@@ -263,127 +245,103 @@
       }, 1000);
     }
 
-    // === REDEEM SYSTEM ===
-    function openRedeem() { 
-      document.getElementById('redeemModal').style.display = 'block'; 
-      document.getElementById('inputAmount').value = '';
+    // === WALLET SYSTEM ===
+    function openWallet() {
+      document.getElementById('walletModal').style.display = 'block';
+      document.getElementById('amount').value = '';
       document.getElementById('outputAmount').innerText = '0';
-      document.getElementById('confirmSection').style.display = 'none';
-      document.getElementById('nextBtn').style.display = 'block';
-      document.getElementById('nextBtn').disabled = true;
-      setMode('points-to-kuba');
-    }
-    function closeRedeem() { 
-      document.getElementById('redeemModal').style.display = 'none'; 
       document.getElementById('txInfo').style.display = 'none';
+      setMode('deposit-kuba');
     }
 
-    function setMode(mode) {
-      redeemMode = mode;
-      const isPoints = mode === 'points-to-kuba';
-      document.getElementById('modePoints').style.opacity = isPoints ? '1' : '0.6';
-      document.getElementById('modeKuba').style.opacity = !isPoints ? '1' : '0.6';
+    function closeWallet() {
+      document.getElementById('walletModal').style.display = 'none';
+    }
 
-      document.getElementById('inputLabel').innerText = isPoints 
-        ? 'พิมพ์จำนวนแต้ม (ขั้นต่ำ 100,000)' 
-        : 'พิมพ์จำนวน KUBA';
-      document.getElementById('inputAmount').placeholder = isPoints ? '100000' : '1000';
+    function copyGameWallet() {
+      navigator.clipboard.writeText(GAME_WALLET);
+      alert(`คัดลอกที่อยู่กระเป๋าแล้ว!\n${GAME_WALLET}\nส่ง KUBA หรือ POL ไปที่นี้เพื่อฝากลงเกม`);
+    }
+
+    function setMode(m) {
+      mode = m;
+      document.getElementById('inputLabel').innerText = 
+        m === 'deposit-kuba' ? 'จำนวน KUBA ที่ฝาก' :
+        m === 'withdraw-kuba' ? 'จำนวน KUBA ที่ถอน' :
+        m === 'deposit-pol' ? 'จำนวน POL ที่ฝาก' : 'จำนวน POL ที่ถอน';
+      document.getElementById('outputLabel').innerText = 
+        m === 'deposit-kuba' ? 'คุณจะได้รับ' : 
+        m === 'withdraw-kuba' ? 'คุณจะใช้' : 'คุณจะได้รับ';
+      document.getElementById('outputUnit').innerText = 
+        m.includes('kuba') ? 'แต้ม' : 'POL';
       calculateOutput();
     }
 
     function calculateOutput() {
-      const input = parseFloat(document.getElementById('inputAmount').value) || 0;
-      let output = 0, unit = '';
-
-      if (redeemMode === 'points-to-kuba') {
-        if (input >= MIN_POINTS && input % 10 === 0) {
-          output = Math.floor(input / 10);
-          unit = 'KUBA';
-          document.getElementById('nextBtn').disabled = false;
-        } else {
-          document.getElementById('nextBtn').disabled = true;
-        }
+      const input = parseFloat(document.getElementById('amount').value) || 0;
+      let output = 0;
+      if (mode === 'deposit-kuba') {
+        output = input * POINTS_PER_KUBA;
+      } else if (mode === 'withdraw-kuba') {
+        output = input * POINTS_PER_KUBA;
       } else {
-        if (input > 0 && input % 1 === 0) {
-          output = input * 10;
-          unit = 'แต้ม';
-          document.getElementById('nextBtn').disabled = false;
-        } else {
-          document.getElementById('nextBtn').disabled = true;
-        }
+        output = input;
       }
-
       document.getElementById('outputAmount').innerText = output.toLocaleString();
-      document.getElementById('outputUnit').innerText = unit;
     }
 
-    async function checkAndShowConfirm() {
-      const input = parseFloat(document.getElementById('inputAmount').value);
-      const output = redeemMode === 'points-to-kuba' ? Math.floor(input / 10) : input * 10;
+    async function executeAction() {
+      const input = parseFloat(document.getElementById('amount').value);
+      if (input <= 0) return alert('กรุณาใส่จำนวน');
 
-      if (redeemMode === 'points-to-kuba') {
-        if (points < input) return alert('แต้มไม่พอ!');
-        const polBalance = await provider.getBalance(wallet.address);
-        const gas = BASE_GAS + output * GAS_PER_KUBA;
-        const polFloat = parseFloat(ethers.utils.formatEther(polBalance));
-        if (polFloat < gas) {
-          return alert(`POL ไม่พอ! ต้องการ ~${gas.toFixed(6)} POL\nกดปุ่ม "ฝาก POL" เพื่อเติม`);
+      try {
+        if (mode === 'deposit-kuba') {
+          const kubaBal = await kubaContract.balanceOf(wallet.address);
+          const neededKuba = ethers.utils.parseUnits(input.toString(), 18);
+          if (kubaBal.lt(neededKuba)) {
+            return alert(`KUBA ไม่พอ! มี ${ethers.utils.formatUnits(kubaBal, 18)} KUBA`);
+          }
+          const tx = await kubaContract.transfer(GAME_WALLET, neededKuba);
+          await tx.wait();
+          points += input * POINTS_PER_KUBA;
+          alert(`ฝากสำเร็จ! +${(input * POINTS_PER_KUBA).toLocaleString()} แต้ม`);
+          showTx(tx.hash);
+        } else if (mode === 'withdraw-kuba') {
+          const neededPoints = input * POINTS_PER_KUBA;
+          if (points < neededPoints) return alert(`แต้มไม่พอ! ต้องการ ${neededPoints.toLocaleString()} แต้ม`);
+          // สมมติว่า GAME_WALLET มี KUBA และอนุญาตให้โอน
+          // ในโลกจริง คุณต้อง deploy contract หรือให้ admin โอน KUBA
+          alert('ถอน KUBA ต้องจัดการโดย admin หรือ smart contract');
+        } else if (mode === 'deposit-pol') {
+          const polBal = await provider.getBalance(wallet.address);
+          const neededPol = ethers.utils.parseEther(input.toString());
+          if (polBal.lt(neededPol)) {
+            return alert(`POL ไม่พอ! มี ${ethers.utils.formatEther(polBal)} POL`);
+          }
+          const tx = await signer.sendTransaction({
+            to: GAME_WALLET,
+            value: neededPol
+          });
+          await tx.wait();
+          alert(`ฝากสำเร็จ! +${input.toLocaleString()} POL`);
+          showTx(tx.hash);
+        } else if (mode === 'withdraw-pol') {
+          // สมมติว่า GAME_WALLET มี POL และอนุญาตให้โอน
+          alert('ถอน POL ต้องจัดการโดย admin หรือ smart contract');
         }
-      } else {
-        const kubaBalance = await kubaContract.balanceOf(wallet.address);
-        const kubaNeeded = ethers.utils.parseUnits(input.toString(), 18);
-        if (kubaBalance.lt(kubaNeeded)) {
-          return alert(`KUBA ไม่พอ! มี ${ethers.utils.formatUnits(kubaBalance, 18)} KUBA`);
-        }
+        saveGame();
+        updateUI();
+        updateBalances();
+      } catch (e) {
+        alert('ผิดพลาด: ' + (e.message || 'Transaction failed'));
       }
-
-      const gas = redeemMode === 'points-to-kuba' ? (BASE_GAS + output * GAS_PER_KUBA).toFixed(6) : '0 (ฟรี)';
-      document.getElementById('confirmOutput').innerText = output.toLocaleString();
-      document.getElementById('confirmUnit').innerText = redeemMode === 'points-to-kuba' ? 'KUBA' : 'แต้ม';
-      document.getElementById('confirmGas').innerText = gas;
-      document.getElementById('confirmSection').style.display = 'block';
-      document.getElementById('nextBtn').style.display = 'none';
-    }
-
-    function cancelRedeem() {
-      document.getElementById('confirmSection').style.display = 'none';
-      document.getElementById('nextBtn').style.display = 'block';
-    }
-
-    async function executeRedeem() {
-      const input = parseFloat(document.getElementById('inputAmount').value);
-      const output = redeemMode === 'points-to-kuba' ? Math.floor(input / 10) : input * 10;
-
-      if (redeemMode === 'points-to-kuba') {
-        points -= input;
-        try {
-          const amount = ethers.utils.parseUnits(output.toString(), 18);
-          const tx = await kubaContract.transfer(wallet.address, amount);
-          const receipt = await tx.wait();
-          alert(`สำเร็จ! +${output.toLocaleString()} KUBA`);
-          showTx(receipt.transactionHash);
-          updateBalances();
-        } catch (e) { 
-          points += input; // คืนแต้มถ้าผิดพลาด
-          alert('ผิดพลาด: ' + (e.message || 'Transaction failed')); 
-        }
-      } else {
-        points += output;
-        alert(`สำเร็จ! +${output.toLocaleString()} แต้ม (ไม่เสีย gas)`);
-      }
-      saveGame(); updateUI(); closeRedeem();
+      closeWallet();
     }
 
     function showTx(hash) {
       document.getElementById('txInfo').style.display = 'block';
       document.getElementById('txLink').href = `https://polygonscan.com/tx/${hash}`;
-      document.getElementById('txLink').innerText = hash.slice(0,10) + '...';
-    }
-
-    function depositPOL() {
-      const addr = wallet.address;
-      navigator.clipboard.writeText(addr);
-      alert(`คัดลอกแล้ว!\nส่ง POL ไปที่:\n${addr}\n(ใช้ MetaMask, Trust Wallet ฯลฯ)`);
+      document.getElementById('txLink').innerText = hash.slice(0, 10) + '...';
     }
 
     // === REWARD, UPGRADE ===
@@ -411,7 +369,8 @@
       if (!pendingReward) return;
       const reward = 300 + (level * 10);
       points += reward;
-      saveGame(); updateUI();
+      saveGame();
+      updateUI();
       alert(`ได้รับ ${reward.toLocaleString()} แต้ม!`);
       closeRewardModal();
     }
@@ -420,7 +379,8 @@
       if (!pendingReward) return;
       const reward = Math.floor(maxEnergy * 0.5);
       energy = Math.min(energy + reward, maxEnergy);
-      saveGame(); updateUI();
+      saveGame();
+      updateUI();
       alert(`ได้รับพลังงาน ${reward} หน่วย!`);
       closeRewardModal();
     }
@@ -434,9 +394,13 @@
       if (level >= MAX_LEVEL) return alert('Max Level!');
       const cost = level === 99 ? 1500000 : 500 + level * 15000;
       if (points < cost) return alert(`ต้องการ ${cost} แต้ม!`);
-      points -= cost; level++; tapPower = level; maxEnergy = level * 100;
+      points -= cost;
+      level++;
+      tapPower = level;
+      maxEnergy = level * 100;
       energy = Math.min(energy, maxEnergy);
-      saveGame(); updateUI();
+      saveGame();
+      updateUI();
     }
 
     function openReferralAd() { 
