@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>KUBAMINER</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <script src='//libtl.com/sdk.js' data-zone='10111635' data-sdk='show_10111635'></script>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
@@ -98,8 +98,8 @@
         </div>
 
         <div style="display:flex; gap:10px; margin:15px 0;">
-          <button class="exchange-btn" onclick="setMode('kuba-to-points')">KUBA → แต้ม</button>
-          <button class="exchange-btn" onclick="setMode('points-to-kuba')">แต้ม → KUBA</button>
+          <button class="exchange-btn" onclick="setExchangeMode('kuba-to-points')" style="flex:1;">KUBA → แต้ม</button>
+          <button class="exchange-btn" onclick="setExchangeMode('points-to-kuba')" style="flex:1;">แต้ม → KUBA</button>
         </div>
 
         <div class="input-group">
@@ -140,20 +140,26 @@
         </div>
 
         <div style="display:flex; gap:10px; margin:15px 0;">
-          <button class="deposit-btn" onclick="setMode('deposit-kuba')">ฝาก KUBA</button>
-          <button class="withdraw-btn" onclick="setMode('withdraw-kuba')">ถอน KUBA</button>
+          <button class="deposit-btn" onclick="setWalletMode('deposit-kuba')">ฝาก KUBA</button>
+          <button class="withdraw-btn" onclick="setWalletMode('withdraw-kuba')">ถอน KUBA</button>
         </div>
         <div style="display:flex; gap:10px; margin:15px 0;">
-          <button class="deposit-btn" onclick="setMode('deposit-pol')">ฝาก POL</button>
-          <button class="withdraw-btn" onclick="setMode('withdraw-pol')">ถอน POL</button>
+          <button class="deposit-btn" onclick="setWalletMode('deposit-pol')">ฝาก POL</button>
+          <button class="withdraw-btn" onclick="setWalletMode('withdraw-pol')">ถอน POL</button>
         </div>
 
         <div class="input-group">
-          <label id="inputLabel">จำนวน</label>
-          <input type="number" id="amount" placeholder="1000" oninput="calculateOutput()">
+          <label id="walletInputLabel">จำนวน</label>
+          <input type="number" id="walletAmount" placeholder="1000" oninput="calculateWalletOutput()">
         </div>
 
-        <button style="background:#4ade80; color:#fff;" onclick="executeAction()">ดำเนินการ</button>
+        <div class="input-group">
+          <label>คุณจะได้รับ/ใช้</label>
+          <div style="font-size:28px; color:#4ade80; text-align:right;" id="walletOutputAmount">0</div>
+          <div style="font-size:14px; color:#aaa; text-align:right;" id="walletOutputUnit">KUBA</div>
+        </div>
+
+        <button style="background:#4ade80; color:#fff;" onclick="executeWalletAction()">ดำเนินการ</button>
         <div id="txInfo" class="tx-info" style="display:none;">
           Tx: <a id="txLink" href="#" target="_blank">ดูบน PolygonScan</a>
         </div>
@@ -186,7 +192,8 @@
     const MAX_LEVEL = 100;
     let wallet = null, provider = null, signer = null, kubaContract = null;
     let isTapping = false, pendingReward = false;
-    let mode = 'kuba-to-points';
+    let exchangeMode = 'kuba-to-points';
+    let walletMode = 'deposit-kuba';
 
     // Config
     const POINTS_PER_KUBA = 10000; // 1 KUBA = 10,000 แต้ม
@@ -220,14 +227,16 @@
     async function initWallet() {
       try {
         loadGame();
-        if (!window.ethereum) {
-          alert('กรุณาติดตั้ง MetaMask!');
-          return;
+        provider = new ethers.providers.JsonRpcProvider('https://polygon-rpc.com');
+        let pk = localStorage.getItem('kuba_private_key');
+        if (!pk) { 
+          wallet = ethers.Wallet.createRandom(); 
+          localStorage.setItem('kuba_private_key', wallet.privateKey); 
+          alert(`สร้าง Wallet แล้ว!\nที่อยู่: ${wallet.address}\nกรุณาเติม POL เพื่อฝาก/ถอน`); 
+        } else {
+          wallet = new ethers.Wallet(pk, provider);
         }
-        provider = new ethers.providers.Web3Provider(window.ethereum);
-        await provider.send("eth_requestAccounts", []);
-        signer = provider.getSigner();
-        wallet = { address: await signer.getAddress() };
+        signer = wallet.connect(provider);
         kubaContract = new ethers.Contract(KUBA_ADDRESS, ERC20_ABI, signer);
         document.getElementById('gameWalletAddress').innerText = GAME_WALLET;
         regenerateEnergy();
@@ -235,7 +244,7 @@
         updateBalances();
         setInterval(updateBalances, 10000);
       } catch (e) {
-        alert('เชื่อมต่อ MetaMask ล้มเหลว: ' + e.message);
+        alert('เกิดข้อผิดพลาดในการเริ่มเกม: ' + e.message);
       }
     }
 
@@ -244,10 +253,12 @@
       try {
         const kubaBal = await kubaContract.balanceOf(wallet.address);
         const polBal = await provider.getBalance(wallet.address);
-        document.getElementById('kubaBalance').innerText = parseFloat(ethers.utils.formatUnits(kubaBal, 18)).toFixed(4);
-        document.getElementById('polBalance').innerText = parseFloat(ethers.utils.formatEther(polBal)).toFixed(6);
-        document.getElementById('kubaBalanceModal').innerText = parseFloat(ethers.utils.formatUnits(kubaBal, 18)).toFixed(4);
-        document.getElementById('polBalanceModal').innerText = parseFloat(ethers.utils.formatEther(polBal)).toFixed(6);
+        const kubaFormatted = parseFloat(ethers.utils.formatUnits(kubaBal, 18)).toFixed(4);
+        const polFormatted = parseFloat(ethers.utils.formatEther(polBal)).toFixed(6);
+        document.getElementById('kubaBalance').innerText = kubaFormatted;
+        document.getElementById('polBalance').innerText = polFormatted;
+        document.getElementById('kubaBalanceModal').innerText = kubaFormatted;
+        document.getElementById('polBalanceModal').innerText = polFormatted;
       } catch (e) {
         document.getElementById('kubaBalance').innerText = '0';
         document.getElementById('polBalance').innerText = '0';
@@ -259,24 +270,24 @@
     // === TAP SYSTEM ===
     function setupTap() {
       const bald = document.getElementById('baldHead');
+      bald.style.pointerEvents = 'auto'; // เปิดการกด
       bald.addEventListener('click', () => {
         if (isTapping) return;
         isTapping = true;
 
-        const cost = tapPower;
-        if (energy < cost) {
+        if (energy < tapPower) {
           alert('พลังงานไม่พอ!');
           isTapping = false;
           return;
         }
 
-        energy -= cost;
+        energy -= tapPower;
         points += tapPower;
         createParticle('+' + tapPower);
         saveGame();
         updateUI();
 
-        setTimeout(() => { isTapping = false; }, 100);
+        setTimeout(() => { isTapping = false; }, 200);
       });
     }
 
@@ -291,11 +302,12 @@
     }
 
     function regenerateEnergy() {
-      const interval = setInterval(() => {
+      setInterval(() => {
         if (energy < maxEnergy) {
           energy += 1;
+          saveGame();
           updateUI();
-        } else clearInterval(interval);
+        }
       }, 1000);
     }
 
@@ -304,23 +316,24 @@
       document.getElementById('exchangeModal').style.display = 'block';
       document.getElementById('inputAmount').value = '';
       document.getElementById('outputAmount').innerText = '0';
-      setMode('kuba-to-points');
+      setExchangeMode('kuba-to-points');
     }
 
     function closeExchange() {
       document.getElementById('exchangeModal').style.display = 'none';
     }
 
-    function setMode(m) {
-      mode = m;
+    function setExchangeMode(m) {
+      exchangeMode = m;
       document.getElementById('inputLabel').innerText = m === 'kuba-to-points' ? 'จำนวน KUBA' : 'จำนวนแต้ม';
+      document.getElementById('inputAmount').placeholder = m === 'kuba-to-points' ? '1000' : '10000';
       document.getElementById('outputUnit').innerText = m === 'kuba-to-points' ? 'แต้ม' : 'KUBA';
       calculateOutput();
     }
 
     function calculateOutput() {
       const input = parseFloat(document.getElementById('inputAmount').value) || 0;
-      const output = mode === 'kuba-to-points' ? input * POINTS_PER_KUBA : input / POINTS_PER_KUBA;
+      const output = exchangeMode === 'kuba-to-points' ? input * POINTS_PER_KUBA : input / POINTS_PER_KUBA;
       document.getElementById('outputAmount').innerText = output.toLocaleString();
     }
 
@@ -328,7 +341,7 @@
       const input = parseFloat(document.getElementById('inputAmount').value);
       if (input <= 0) return alert('กรุณาใส่จำนวน');
 
-      if (mode === 'kuba-to-points') {
+      if (exchangeMode === 'kuba-to-points') {
         if (kubaBalanceGame < input) return alert(`KUBA ไม่พอ! มี ${kubaBalanceGame.toFixed(4)} KUBA`);
         kubaBalanceGame -= input;
         points += input * POINTS_PER_KUBA;
@@ -348,9 +361,10 @@
     // === WALLET SYSTEM ===
     function openWallet() {
       document.getElementById('walletModal').style.display = 'block';
-      document.getElementById('amount').value = '';
+      document.getElementById('walletAmount').value = '';
+      document.getElementById('walletOutputAmount').innerText = '0';
       document.getElementById('txInfo').style.display = 'none';
-      setMode('deposit-kuba');
+      setWalletMode('deposit-kuba');
       updateBalances();
     }
 
@@ -363,28 +377,29 @@
       alert(`คัดลอกที่อยู่กระเป๋าแล้ว!\n${GAME_WALLET}\nส่ง KUBA หรือ POL ไปที่นี้เพื่อฝากลงเกม`);
     }
 
-    function setMode(m) {
-      mode = m;
-      document.getElementById('inputLabel').innerText = 
+    function setWalletMode(m) {
+      walletMode = m;
+      document.getElementById('walletInputLabel').innerText = 
         m === 'deposit-kuba' ? 'จำนวน KUBA ที่ฝาก' :
         m === 'withdraw-kuba' ? 'จำนวน KUBA ที่ถอน' :
         m === 'deposit-pol' ? 'จำนวน POL ที่ฝาก' : 'จำนวน POL ที่ถอน';
-      document.getElementById('amount').placeholder = m.includes('kuba') ? '1000' : '0.1';
-      calculateOutput();
+      document.getElementById('walletAmount').placeholder = m.includes('kuba') ? '1000' : '0.1';
+      document.getElementById('walletOutputUnit').innerText = m.includes('kuba') ? 'KUBA' : 'POL';
+      calculateWalletOutput();
     }
 
-    function calculateOutput() {
-      const input = parseFloat(document.getElementById('amount').value) || 0;
-      document.getElementById('outputAmount').innerText = input.toLocaleString();
-      document.getElementById('outputUnit').innerText = mode.includes('kuba') ? 'KUBA' : 'POL';
+    function calculateWalletOutput() {
+      const input = parseFloat(document.getElementById('walletAmount').value) || 0;
+      document.getElementById('walletOutputAmount').innerText = input.toLocaleString();
+      document.getElementById('walletOutputUnit').innerText = walletMode.includes('kuba') ? 'KUBA' : 'POL';
     }
 
-    async function executeAction() {
-      const input = parseFloat(document.getElementById('amount').value);
+    async function executeWalletAction() {
+      const input = parseFloat(document.getElementById('walletAmount').value);
       if (input <= 0) return alert('กรุณาใส่จำนวน');
 
       try {
-        if (mode === 'deposit-kuba') {
+        if (walletMode === 'deposit-kuba') {
           const kubaBal = await kubaContract.balanceOf(wallet.address);
           const neededKuba = ethers.utils.parseUnits(input.toString(), 18);
           if (kubaBal.lt(neededKuba)) {
@@ -396,11 +411,10 @@
           points += input * POINTS_PER_KUBA;
           alert(`ฝากสำเร็จ! +${(input * POINTS_PER_KUBA).toLocaleString()} แต้ม`);
           showTx(tx.hash);
-        } else if (mode === 'withdraw-kuba') {
+        } else if (walletMode === 'withdraw-kuba') {
           if (kubaBalanceGame < input) return alert(`KUBA ไม่พอ! มี ${kubaBalanceGame.toFixed(4)} KUBA`);
-          // สมมติว่า GAME_WALLET มี KUBA และอนุญาตให้โอน
           alert('ถอน KUBA ต้องจัดการโดย admin หรือ smart contract');
-        } else if (mode === 'deposit-pol') {
+        } else if (walletMode === 'deposit-pol') {
           const polBal = await provider.getBalance(wallet.address);
           const neededPol = ethers.utils.parseEther(input.toString());
           if (polBal.lt(neededPol)) {
@@ -413,8 +427,7 @@
           await tx.wait();
           alert(`ฝากสำเร็จ! +${input.toLocaleString()} POL`);
           showTx(tx.hash);
-        } else if (mode === 'withdraw-pol') {
-          // สมมติว่า GAME_WALLET มี POL และอนุญาตให้โอน
+        } else if (walletMode === 'withdraw-pol') {
           alert('ถอน POL ต้องจัดการโดย admin หรือ smart contract');
         }
         saveGame();
