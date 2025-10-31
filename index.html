@@ -17,18 +17,18 @@
     h1 { font-size:28px; margin:15px 0; font-weight:bold; color:#ffd700; text-shadow:0 0 8px #ffd700; }
     
     button {
-      background:linear-gradient(135deg, #ffd700, #f39c12); color:#000; border:none; 
+      background:none; color:#fff; border:2px solid #ffd700; 
       padding:14px; border-radius:16px; font-weight:bold; font-size:16px; 
-      margin:10px auto; width:92%; box-shadow:0 4px 10px rgba(255,215,0,0.3);
+      margin:10px auto; width:92%; box-shadow:0 0 15px rgba(255,215,0,0.2);
       transition:0.2s; display:block;
     }
-    button:active { transform:scale(0.98); }
-    .redeem-btn { background:linear-gradient(135deg, #9c88ff, #6c5ce7); color:white; }
-    .deposit-btn { background:linear-gradient(135deg, #f39c12, #e67e22); color:white; font-size:14px; }
-    .reward-btn { background:linear-gradient(135deg, #ff6b6b, #ee5a52); color:white; }
-    .upgrade-btn { background:linear-gradient(135deg, #f39c12, #e67e22); color:white; }
-    .refer-btn { background:linear-gradient(135deg, #2ed573, #27ae60); color:white; }
-    .copy-btn { background:linear-gradient(135deg, #5f27cd, #4834d4); color:white; font-size:14px; }
+    button:active { transform:scale(0.98); background:rgba(255,215,0,0.1); }
+    .redeem-btn { border-color:#9c88ff; color:#9c88ff; }
+    .reward-btn { border-color:#ff6b6b; color:#ff6b6b; }
+    .upgrade-btn { border-color:#f39c12; color:#f39c12; }
+    .refer-btn { border-color:#2ed573; color:#2ed573; }
+    .copy-btn { border-color:#5f27cd; color:#5f27cd; font-size:14px; }
+    .deposit-btn { border-color:#e67e22; color:#e67e22; font-size:14px; }
 
     .info { font-size:14px; margin:8px 0; color:#aaa; }
     .highlight { color:#ffd700; font-weight:bold; }
@@ -72,7 +72,6 @@
     <h1>KUBAMINER</h1>
 
     <button class="redeem-btn" onclick="openRedeem()">แลก KUBA / แต้ม</button>
-    <button class="deposit-btn" onclick="depositPOL()">ฝาก POL (สำหรับ Gas)</button>
     <button class="reward-btn" id="rewardButton" onclick="showRewardChoice()">รับรางวัล</button>
     <div id="rewardCooldown" class="info">พร้อม</div>
 
@@ -87,7 +86,7 @@
       แต้มต่อครั้ง: <span class="highlight" id="tapPower">1</span>
     </div>
 
-    <div style="background:#1a1a2e; border:1px solid #FFD700; border-radius:12px; padding:10px; margin:15px 0; font-size:12px; word-break:break-all;">
+    <div class="info" style="margin:15px 0; font-size:12px;">
       Wallet: <span id="walletAddress">Loading...</span>
     </div>
 
@@ -102,6 +101,8 @@
       <div class="redeem-container">
         <h3 class="redeem-title">แลกเปลี่ยน</h3>
         
+        <button class="deposit-btn" onclick="depositPOL()" style="width:100%; margin:10px 0;">ฝาก POL (สำหรับ Gas)</button>
+
         <div class="input-group">
           <label>พิมพ์จำนวน (แต้ม หรือ KUBA)</label>
           <input type="number" id="inputAmount" placeholder="100000" oninput="calculateOutput()">
@@ -120,12 +121,12 @@
             <div class="confirm-gas">ค่า Gas: <span id="confirmGas">0.021</span> POL</div>
           </div>
           <div class="btn-group">
-            <button onclick="executeRedeem()" style="background:#4ade80;">ยืนยัน</button>
-            <button onclick="cancelRedeem()" style="background:#e74c3c;">ยกเลิก</button>
+            <button onclick="executeRedeem()" style="background:#4ade80; border:none;">ยืนยัน</button>
+            <button onclick="cancelRedeem()" style="background:#e74c3c; border:none;">ยกเลิก</button>
           </div>
         </div>
 
-        <button id="nextBtn" class="redeem-btn" onclick="showConfirm()" disabled>ถัดไป</button>
+        <button id="nextBtn" class="redeem-btn" onclick="showConfirm()" disabled style="background:none; border:2px solid #9c88ff; color:#9c88ff;">ถัดไป</button>
         <div id="txInfo" class="tx-info" style="display:none;">
           Tx: <a id="txLink" href="#" target="_blank">ดูบน PolygonScan</a>
         </div>
@@ -141,13 +142,13 @@
       <div style="margin:15px 0; font-size:16px; color:#fff;">
         ดูโฆษณาเสร็จแล้ว! รับรางวัลอย่างใดอย่างหนึ่ง:
       </div>
-      <button onclick="claimPointsReward()" style="background:#4ade80; margin:10px; padding:14px; border-radius:12px; font-weight:bold; font-size:16px;">
+      <button onclick="claimPointsReward()" style="background:none; border:2px solid #4ade80; color:#4ade80; margin:10px; padding:14px; border-radius:12px; font-weight:bold; font-size:16px;">
         รับ <span id="pointsRewardAmount">300</span> แต้ม
       </button>
-      <button onclick="claimEnergyReward()" style="background:#f39c12; margin:10px; padding:14px; border-radius:12px; font-weight:bold; font-size:16px;">
+      <button onclick="claimEnergyReward()" style="background:none; border:2px solid #f39c12; color:#f39c12; margin:10px; padding:14px; border-radius:12px; font-weight:bold; font-size:16px;">
         รับพลังงาน 50%
       </button>
-      <button onclick="closeRewardModal()" style="background:#e74c3c; margin:10px; padding:12px; border-radius:12px;">ยกเลิก</button>
+      <button onclick="closeRewardModal()" style="background:#e74c3c; border:none; margin:10px; padding:12px; border-radius:12px;">ยกเลิก</button>
     </div>
   </div>
 
@@ -197,7 +198,7 @@
       signer = wallet.connect(provider);
       document.getElementById('walletAddress').innerText = wallet.address.slice(0,8) + '...' + wallet.address.slice(-6);
       regenerateEnergy();
-      setupTap(); // เพิ่ม tap
+      setupTap();
     }
 
     // === TAP SYSTEM ===
@@ -241,53 +242,6 @@
           updateUI();
         } else clearInterval(interval);
       }, 1000);
-    }
-
-    // === REWARD SYSTEM ===
-    function showRewardChoice() {
-      const btn = document.getElementById('rewardButton');
-      btn.disabled = true;
-      document.getElementById('rewardCooldown').innerText = 'โหลดโฆษณา...';
-
-      show_10111635().then(() => {
-        pendingReward = true;
-        updateRewardAmounts();
-        document.getElementById('rewardModal').style.display = 'block';
-        btn.disabled = false;
-        document.getElementById('rewardCooldown').innerText = 'พร้อม';
-      }).catch(() => {
-        alert('กรุณาดูโฆษณาให้จบ');
-        btn.disabled = false;
-        document.getElementById('rewardCooldown').innerText = 'พร้อม';
-      });
-    }
-
-    function updateRewardAmounts() {
-      const reward = 300 + (level * 10);
-      document.getElementById('pointsRewardAmount').innerText = reward.toLocaleString();
-    }
-
-    function claimPointsReward() {
-      if (!pendingReward) return;
-      const reward = 300 + (level * 10);
-      points += reward;
-      saveGame(); updateUI();
-      alert(`ได้รับ ${reward.toLocaleString()} แต้ม!`);
-      closeRewardModal();
-    }
-
-    function claimEnergyReward() {
-      if (!pendingReward) return;
-      const reward = Math.floor(maxEnergy * 0.5);
-      energy = Math.min(energy + reward, maxEnergy);
-      saveGame(); updateUI();
-      alert(`ได้รับพลังงาน ${reward} หน่วย!`);
-      closeRewardModal();
-    }
-
-    function closeRewardModal() {
-      document.getElementById('rewardModal').style.display = 'none';
-      pendingReward = false;
     }
 
     // === REDEEM SYSTEM ===
@@ -374,7 +328,54 @@
     function depositPOL() {
       const addr = wallet.address;
       navigator.clipboard.writeText(addr);
-      alert(`คัดลอกแล้ว!\nส่ง POL ไปที่:\n${addr}`);
+      alert(`คัดลอกแล้ว!\nส่ง POL ไปที่:\n${addr}\n(ใช้ MetaMask หรือ Wallet อื่น)`);
+    }
+
+    // === REWARD, UPGRADE, ETC. ===
+    function showRewardChoice() {
+      const btn = document.getElementById('rewardButton');
+      btn.disabled = true;
+      document.getElementById('rewardCooldown').innerText = 'โหลดโฆษณา...';
+
+      show_10111635().then(() => {
+        pendingReward = true;
+        updateRewardAmounts();
+        document.getElementById('rewardModal').style.display = 'block';
+        btn.disabled = false;
+        document.getElementById('rewardCooldown').innerText = 'พร้อม';
+      }).catch(() => {
+        alert('กรุณาดูโฆษณาให้จบ');
+        btn.disabled = false;
+        document.getElementById('rewardCooldown').innerText = 'พร้อม';
+      });
+    }
+
+    function updateRewardAmounts() {
+      const reward = 300 + (level * 10);
+      document.getElementById('pointsRewardAmount').innerText = reward.toLocaleString();
+    }
+
+    function claimPointsReward() {
+      if (!pendingReward) return;
+      const reward = 300 + (level * 10);
+      points += reward;
+      saveGame(); updateUI();
+      alert(`ได้รับ ${reward.toLocaleString()} แต้ม!`);
+      closeRewardModal();
+    }
+
+    function claimEnergyReward() {
+      if (!pendingReward) return;
+      const reward = Math.floor(maxEnergy * 0.5);
+      energy = Math.min(energy + reward, maxEnergy);
+      saveGame(); updateUI();
+      alert(`ได้รับพลังงาน ${reward} หน่วย!`);
+      closeRewardModal();
+    }
+
+    function closeRewardModal() {
+      document.getElementById('rewardModal').style.display = 'none';
+      pendingReward = false;
     }
 
     function upgradeCharacter() {
