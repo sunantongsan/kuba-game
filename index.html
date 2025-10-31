@@ -29,6 +29,7 @@
     .refer-btn { border-color:#2ed573; color:#2ed573; }
     .copy-btn { border-color:#5f27cd; color:#5f27cd; font-size:14px; }
     .deposit-btn { border-color:#e67e22; color:#e67e22; font-size:14px; }
+    .switch-btn { border-color:#ffd700; color:#ffd700; font-size:14px; }
 
     .info { font-size:14px; margin:8px 0; color:#aaa; }
     .highlight { color:#ffd700; font-weight:bold; }
@@ -57,7 +58,6 @@
     .btn-group button { flex:1; margin:0; }
 
     .close-btn { background:#e74c3c; margin:10px; padding:12px; border-radius:12px; font-size:14px; }
-
     .tx-info { background:#1a1a2e; border-radius:12px; padding:10px; margin:10px 0; font-size:12px; color:#4ade80; word-break:break-all; }
     .tx-info a { color:#4ade80; text-decoration:underline; }
   </style>
@@ -71,7 +71,7 @@
 
     <h1>KUBAMINER</h1>
 
-    <button class="redeem-btn" onclick="openRedeem()">แลก KUBA / แต้ม</button>
+    <button class="redeem-btn" onclick="openRedeem()">แลกเปลี่ยน</button>
     <button class="reward-btn" id="rewardButton" onclick="showRewardChoice()">รับรางวัล</button>
     <div id="rewardCooldown" class="info">พร้อม</div>
 
@@ -82,17 +82,9 @@
     <div class="info">
       พลังงาน: <span class="energy-text" id="energy">100</span> / <span id="maxEnergy">100</span>
     </div>
-    <div class="info">
-      แต้มต่อครั้ง: <span class="highlight" id="tapPower">1</span>
-    </div>
-
-    <div class="info" style="margin:15px 0; font-size:12px;">
-      Wallet: <span id="walletAddress">Loading...</span>
-    </div>
 
     <button class="upgrade-btn" onclick="upgradeCharacter()">อัปเกรด (<span id="upgradeCost">500</span> แต้ม)</button>
     <button class="refer-btn" onclick="openReferralAd()">รับ Airdrop!</button>
-    <button class="copy-btn" onclick="copyAddress()">คัดลอก Wallet</button>
   </div>
 
   <!-- Redeem Modal -->
@@ -103,8 +95,14 @@
         
         <button class="deposit-btn" onclick="depositPOL()" style="width:100%; margin:10px 0;">ฝาก POL (สำหรับ Gas)</button>
 
+        <!-- ปุ่มสลับโหมด -->
+        <div style="display:flex; gap:10px; margin:15px 0;">
+          <button id="modePoints" class="switch-btn" onclick="setMode('points-to-kuba')" style="flex:1; background:#ffd700; color:#000;">แต้ม → KUBA</button>
+          <button id="modeKuba" class="switch-btn" onclick="setMode('kuba-to-points')" style="flex:1;">KUBA → แต้ม</button>
+        </div>
+
         <div class="input-group">
-          <label>พิมพ์จำนวน (แต้ม หรือ KUBA)</label>
+          <label id="inputLabel">พิมพ์จำนวนแต้ม (ขั้นต่ำ 100,000)</label>
           <input type="number" id="inputAmount" placeholder="100000" oninput="calculateOutput()">
         </div>
 
@@ -166,7 +164,6 @@
     const BASE_GAS = 0.001;
     const GAS_PER_KUBA = 0.000002;
     const KUBA_ADDRESS = '0x8eFc217Bb56e9081455171002F80b84737cB4468';
-    const LIQUIDITY_WALLET = '0x34d27165382fdc48b468e5deb617ea1018e3454e';
     const ERC20_ABI = ['function transfer(address to, uint256 amount) public returns (bool)'];
 
     // Load / Save
@@ -196,7 +193,6 @@
         alert('สร้าง Wallet แล้ว! ฝาก POL เพื่อจ่าย gas'); 
       } else wallet = new ethers.Wallet(pk, provider);
       signer = wallet.connect(provider);
-      document.getElementById('walletAddress').innerText = wallet.address.slice(0,8) + '...' + wallet.address.slice(-6);
       regenerateEnergy();
       setupTap();
     }
@@ -252,33 +248,52 @@
       document.getElementById('confirmSection').style.display = 'none';
       document.getElementById('nextBtn').style.display = 'block';
       document.getElementById('nextBtn').disabled = true;
+      setMode('points-to-kuba'); // เริ่มต้น
     }
     function closeRedeem() { 
       document.getElementById('redeemModal').style.display = 'none'; 
       document.getElementById('txInfo').style.display = 'none';
     }
 
+    function setMode(mode) {
+      redeemMode = mode;
+      const isPoints = mode === 'points-to-kuba';
+      document.getElementById('modePoints').style.background = isPoints ? '#ffd700' : 'none';
+      document.getElementById('modePoints').style.color = isPoints ? '#000' : '#ffd700';
+      document.getElementById('modeKuba').style.background = !isPoints ? '#ffd700' : 'none';
+      document.getElementById('modeKuba').style.color = !isPoints ? '#000' : '#ffd700';
+
+      document.getElementById('inputLabel').innerText = isPoints 
+        ? 'พิมพ์จำนวนแต้ม (ขั้นต่ำ 100,000)' 
+        : 'พิมพ์จำนวน KUBA';
+      document.getElementById('inputAmount').placeholder = isPoints ? '100000' : '1000';
+      calculateOutput();
+    }
+
     function calculateOutput() {
       const input = parseFloat(document.getElementById('inputAmount').value) || 0;
-      let output = 0, unit = '', mode = '';
+      let output = 0, unit = '';
 
-      if (input >= 100000 && input % 10 === 0) {
-        output = Math.floor(input / 10);
-        unit = 'KUBA';
-        mode = 'points-to-kuba';
-      } else if (input > 0 && input % 1 === 0) {
-        output = input * 10;
-        unit = 'แต้ม';
-        mode = 'kuba-to-points';
+      if (redeemMode === 'points-to-kuba') {
+        if (input >= MIN_POINTS && input % 10 === 0) {
+          output = Math.floor(input / 10);
+          unit = 'KUBA';
+          document.getElementById('nextBtn').disabled = false;
+        } else {
+          document.getElementById('nextBtn').disabled = true;
+        }
       } else {
-        document.getElementById('nextBtn').disabled = true;
-        return;
+        if (input > 0 && input % 1 === 0) {
+          output = input * 10;
+          unit = 'แต้ม';
+          document.getElementById('nextBtn').disabled = false;
+        } else {
+          document.getElementById('nextBtn').disabled = true;
+        }
       }
 
       document.getElementById('outputAmount').innerText = output.toLocaleString();
       document.getElementById('outputUnit').innerText = unit;
-      document.getElementById('nextBtn').disabled = false;
-      redeemMode = mode;
     }
 
     function showConfirm() {
@@ -387,11 +402,6 @@
       saveGame(); updateUI();
     }
 
-    function copyAddress() { 
-      navigator.clipboard.writeText(wallet.address); 
-      alert('คัดลอกแล้ว!'); 
-    }
-
     function openReferralAd() { 
       window.open('https://sunantongsan.github.io/kuba-game/share-ad.html', '_blank'); 
     }
@@ -401,7 +411,6 @@
       document.getElementById('level').innerText = level;
       document.getElementById('energy').innerText = Math.floor(energy);
       document.getElementById('maxEnergy').innerText = maxEnergy;
-      document.getElementById('tapPower').innerText = tapPower;
       const cost = level >= MAX_LEVEL ? 'MAX' : (level === 99 ? 1500000 : 500 + level * 15000).toLocaleString();
       document.getElementById('upgradeCost').innerText = cost;
     }
