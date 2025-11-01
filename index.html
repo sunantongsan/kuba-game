@@ -136,11 +136,11 @@
         </div>
 
         <div class="input-group">
-          <label>KUBA ของคุณ</label>
+          <label>KUBA ในกระเป๋าเกม</label>
           <div style="font-size:28px; color:#ffd700; text-align:right;" id="kubaBalanceModal">0</div>
         </div>
         <div class="input-group">
-          <label>POL ของคุณ</label>
+          <label>POL ในกระเป๋าเกม</label>
           <div style="font-size:28px; color:#9c88ff; text-align:right;" id="polBalanceModal">0</div>
         </div>
 
@@ -207,6 +207,7 @@
 
     // Config
     const POINTS_PER_KUBA = 10000; // 1 KUBA = 10,000 แต้ม
+    const MIN_POINTS_EXCHANGE = 100000; // ขั้นต่ำ 100,000 แต้ม
     const KUBA_ADDRESS = '0x8eFc217Bb56e9081455171002F80b84737cB4468';
     const GAME_WALLET = 'YOUR_GAME_WALLET_ADDRESS'; // ใส่ Wallet Address ที่เก็บ KUBA/POL
     const ERC20_ABI = [
@@ -339,7 +340,7 @@
     function setExchangeMode(m) {
       exchangeMode = m;
       document.getElementById('inputLabel').innerText = m === 'kuba-to-points' ? 'จำนวน KUBA' : 'จำนวนแต้ม';
-      document.getElementById('inputAmount').placeholder = m === 'kuba-to-points' ? '1000' : '10000';
+      document.getElementById('inputAmount').placeholder = m === 'kuba-to-points' ? '10' : '100000';
       document.getElementById('outputUnit').innerText = m === 'kuba-to-points' ? 'แต้ม' : 'KUBA';
       calculateOutput();
     }
@@ -355,16 +356,18 @@
       if (input <= 0) return alert('กรุณาใส่จำนวน');
 
       if (exchangeMode === 'kuba-to-points') {
+        if (input < 10) return alert('ขั้นต่ำ 10 KUBA!');
         if (kubaBalanceGame < input) return alert(`KUBA ไม่พอ! มี ${kubaBalanceGame.toFixed(4)} KUBA`);
         kubaBalanceGame -= input;
         points += input * POINTS_PER_KUBA;
         alert(`แลกสำเร็จ! +${(input * POINTS_PER_KUBA).toLocaleString()} แต้ม`);
       } else {
-        const neededPoints = input * POINTS_PER_KUBA;
+        if (input < MIN_POINTS_EXCHANGE) return alert(`ขั้นต่ำ ${MIN_POINTS_EXCHANGE.toLocaleString()} แต้ม!`);
+        const neededPoints = input;
         if (points < neededPoints) return alert(`แต้มไม่พอ! ต้องการ ${neededPoints.toLocaleString()} แต้ม`);
         points -= neededPoints;
-        kubaBalanceGame += input;
-        alert(`แลกสำเร็จ! +${input.toLocaleString()} KUBA`);
+        kubaBalanceGame += input / POINTS_PER_KUBA;
+        alert(`แลกสำเร็จ! +${(input / POINTS_PER_KUBA).toLocaleString()} KUBA`);
       }
       saveGame();
       updateUI();
@@ -397,7 +400,7 @@
         m === 'deposit-kuba' ? 'จำนวน KUBA ที่ฝาก (ใส่หลังโอน)' :
         m === 'withdraw-kuba' ? 'จำนวน KUBA ที่ถอน' :
         m === 'deposit-pol' ? 'จำนวน POL ที่ฝาก (ใส่หลังโอน)' : 'จำนวน POL ที่ถอน';
-      document.getElementById('walletAmount').placeholder = m.includes('kuba') ? '1000' : '0.1';
+      document.getElementById('walletAmount').placeholder = m.includes('kuba') ? '10' : '0.1';
       document.getElementById('amountInput').style.display = 'block';
       document.getElementById('addressInput').style.display = m.includes('withdraw') ? 'block' : 'none';
       document.getElementById('walletOutputUnit').innerText = m.includes('kuba') ? 'KUBA' : 'POL';
@@ -428,6 +431,9 @@
           const neededKuba = ethers.utils.parseUnits(input.toString(), 18);
           if (kubaBal.lt(neededKuba)) {
             return alert(`KUBA ใน GAME_WALLET ไม่พอ! มี ${ethers.utils.formatUnits(kubaBal, 18)} KUBA`);
+          }
+          if (kubaBalanceGame < input) {
+            return alert(`KUBA ในเกมไม่พอ! มี ${kubaBalanceGame.toFixed(4)} KUBA`);
           }
           const tx = await kubaContract.transfer(destAddress, neededKuba);
           await tx.wait();
