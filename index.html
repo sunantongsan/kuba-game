@@ -34,9 +34,9 @@
     h1 { font-size:28px; margin:15px 0; font-weight:bold; color:#ffd700; text-shadow:0 0 8px #ffd700; }
     
     button {
-      background: rgba(0,0,0,0.4); /* พื้นหลังกึ่งโปร่งใสให้ปุ่มเด่น */
+      background: none; /* ลบพื้นหลัง */
+      border: none; /* ลบกรอบ */
       color:#fff; 
-      border:none; 
       padding:14px; 
       border-radius:16px; 
       font-weight:bold; 
@@ -45,6 +45,7 @@
       width:92%; 
       transition:0.2s; 
       display:block;
+      text-decoration: underline; /* เพิ่มเส้นใต้เพื่อให้ดูเหมือนลิงก์ (ถ้าต้องการ) */
     }
     button:active { transform:scale(0.98); opacity:0.8; }
     .exchange-btn { color:#9c88ff; }
@@ -138,7 +139,7 @@
     .input-group { padding:16px; margin:10px 0; text-align:left; }
     .input-group input { background:none; border:none; color:#fff; font-size:24px; text-align:right; width:100%; }
     .input-group label { color:#aaa; font-size:14px; }
-    .close-btn { background:#e74c3c; margin:10px; padding:12px; border-radius:12px; font-size:14px; }
+    .close-btn { background:none; border:none; color:#e74c3c; margin:10px; padding:12px; border-radius:12px; font-size:14px; }
     .balance-kuba { color:#ffd700; font-weight:bold; }
   </style>
 </head>
@@ -198,7 +199,7 @@
           <div style="font-size:14px; color:#aaa; text-align:right;" id="outputUnit">แต้ม</div>
         </div>
 
-        <button style="background:#4ade80; color:#fff;" onclick="executeExchange()">แลกเปลี่ยน</button>
+        <button style="background:none; border:none; color:#4ade80;" onclick="executeExchange()">แลกเปลี่ยน</button>
       </div>
       <button class="close-btn" onclick="closeExchange()">ปิด</button>
     </div>
@@ -211,13 +212,13 @@
       <div style="margin:15px 0; font-size:16px; color:#fff;">
         ดูโฆษณาเสร็จแล้ว! รับรางวัลอย่างใดอย่างหนึ่ง:
       </div>
-      <button onclick="claimPointsReward()" style="color:#4ade80; margin:10px; padding:14px; border-radius:12px; font-weight:bold; font-size:16px;">
+      <button style="background:none; border:none; color:#4ade80; margin:10px; padding:14px; border-radius:12px; font-weight:bold; font-size:16px;" onclick="claimPointsReward()">
         รับ <span id="pointsRewardAmount">300</span> แต้ม
       </button>
-      <button onclick="claimEnergyReward()" style="color:#f39c12; margin:10px; padding:14px; border-radius:12px; font-weight:bold; font-size:16px;">
+      <button style="background:none; border:none; color:#f39c12; margin:10px; padding:14px; border-radius:12px; font-weight:bold; font-size:16px;" onclick="claimEnergyReward()">
         รับพลังงาน 50%
       </button>
-      <button onclick="closeRewardModal()" style="background:#e74c3c; color:#fff; margin:10px; padding:12px; border-radius:12px;">ยกเลิก</button>
+      <button style="background:none; border:none; color:#e74c3c;" onclick="closeRewardModal()">ยกเลิก</button>
     </div>
   </div>
 
