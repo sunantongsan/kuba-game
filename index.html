@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>KUBAMINER</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <script src='//libtl.com/sdk.js' data-zone='10111635' data-sdk='show_10111635'></script>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
@@ -23,13 +22,12 @@
       margin:10px auto; width:92%; transition:0.2s; display:block;
     }
     button:active { transform:scale(0.98); opacity:0.8; }
-    .deposit-btn { color:#4ade80; }
-    .withdraw-btn { color:#f39c12; }
     .exchange-btn { color:#9c88ff; }
     .reward-btn { color:#ff6b6b; }
     .upgrade-btn { color:#f39c12; }
     .refer-btn { color:#2ed573; }
     .restore-btn { color:#e67e22; }
+    .check-btn { color:#3498db; }
 
     .info { font-size:14px; margin:8px 0; color:#aaa; }
     .highlight { color:#ffd700; font-weight:bold; }
@@ -53,10 +51,7 @@
     .input-group input { background:none; border:none; color:#fff; font-size:24px; text-align:right; width:100%; }
     .input-group label { color:#aaa; font-size:14px; }
     .close-btn { background:#e74c3c; margin:10px; padding:12px; border-radius:12px; font-size:14px; }
-    .tx-info { padding:10px; margin:10px 0; font-size:12px; color:#4ade80; word-break:break-all; }
-    .tx-info a { color:#4ade80; text-decoration:underline; }
     .balance-kuba { color:#ffd700; font-weight:bold; }
-    .balance-pol { color:#9c88ff; }
   </style>
 </head>
 <body>
@@ -65,16 +60,15 @@
       <div class="left">Points: <span class="highlight" id="pointsDisplay">0</span></div>
       <div class="right">
         <div>KUBA: <span class="balance-kuba" id="kubaBalance">0</span></div>
-        <div>POL: <span class="balance-pol" id="polBalance">0</span></div>
       </div>
     </div>
 
     <h1>KUBAMINER</h1>
 
     <button class="exchange-btn" onclick="openExchange()">แลกเปลี่ยน</button>
-    <button class="deposit-btn" onclick="openWallet()">ฝาก/ถอน POL</button>
     <button class="reward-btn" id="rewardButton" onclick="showRewardChoice()">รับรางวัล</button>
     <button class="restore-btn" onclick="openRestore()">กู้คืนแต้ม/KUBA</button>
+    <button class="check-btn" onclick="checkLogs()">ตรวจสอบยอด</button>
     <div class="info" style="margin:0 0 15px 0;">Level: <span class="highlight" id="level">1</span></div>
 
     <div class="bald" id="baldHead">
@@ -124,52 +118,6 @@
     </div>
   </div>
 
-  <!-- Wallet Modal -->
-  <div id="walletModal" class="modal">
-    <div class="modal-content">
-      <div class="redeem-container">
-        <h3 class="redeem-title">ฝาก/ถอน POL</h3>
-        <div class="contract-info">
-          <strong>ซื้อ KUBA:</strong> <a href="https://app.uniswap.org/#/swap?chain=polygon&inputCurrency=0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270&outputCurrency=0x8eFc217Bb56e9081455171002F80b84737cB4468" target="_blank">Uniswap</a><br>
-          <strong>ฝากไปที่:</strong> <span id="gameWalletAddress">0x...</span> <button onclick="copyGameWallet()">คัดลอก</button><br>
-          <strong>เครือข่าย:</strong> Polygon (MATIC)
-        </div>
-
-        <div class="input-group">
-          <label>POL ในกระเป๋าเกม</label>
-          <div style="font-size:28px; color:#9c88ff; text-align:right;" id="polBalanceModal">0</div>
-        </div>
-
-        <div style="display:flex; gap:10px; margin:15px 0;">
-          <button class="deposit-btn" onclick="setWalletMode('deposit-pol')">ฝาก POL</button>
-          <button class="withdraw-btn" onclick="setWalletMode('withdraw-pol')">ถอน POL</button>
-        </div>
-
-        <div class="input-group" id="amountInput">
-          <label id="walletInputLabel">จำนวน POL</label>
-          <input type="number" id="walletAmount" placeholder="0.1">
-        </div>
-
-        <div class="input-group" id="addressInput" style="display:none;">
-          <label>ที่อยู่ปลายทาง (สำหรับถอน)</label>
-          <input type="text" id="destinationAddress" placeholder="0x...">
-        </div>
-
-        <div class="input-group">
-          <label>คุณจะได้รับ/ใช้</label>
-          <div style="font-size:28px; color:#4ade80; text-align:right;" id="walletOutputAmount">0</div>
-          <div style="font-size:14px; color:#aaa; text-align:right;" id="walletOutputUnit">POL</div>
-        </div>
-
-        <button style="background:#4ade80; color:#fff;" onclick="executeWalletAction()">ดำเนินการ</button>
-        <div id="txInfo" class="tx-info" style="display:none;">
-          Tx: <a id="txLink" href="#" target="_blank">ดูบน PolygonScan</a>
-        </div>
-      </div>
-      <button class="close-btn" onclick="closeWallet()">ปิด</button>
-    </div>
-  </div>
-
   <!-- Restore Modal -->
   <div id="restoreModal" class="modal">
     <div class="modal-content">
@@ -182,6 +130,10 @@
         <div class="input-group">
           <label>จำนวน KUBA ที่ควรมี</label>
           <input type="number" id="restoreKuba" placeholder="100">
+        </div>
+        <div class="input-group">
+          <label>ระดับ (Level) ที่ควรมี</label>
+          <input type="number" id="restoreLevel" placeholder="1">
         </div>
         <button style="background:#e67e22; color:#fff;" onclick="restoreBalance()">กู้คืน</button>
       </div>
@@ -211,20 +163,12 @@
     let points = 0, energy = 100, maxEnergy = 100, tapPower = 1, level = 1;
     let kubaBalanceGame = 0; // KUBA ในเกม (off-chain)
     const MAX_LEVEL = 100;
-    let wallet = null, provider = null, signer = null;
-    let isTapping = false, pendingReward = false;
+    let isTaping = false, pendingReward = false;
     let exchangeMode = 'kuba-to-points';
-    let walletMode = 'deposit-pol';
 
     // Config
     const POINTS_PER_KUBA = 10000; // 1 KUBA = 10,000 แต้ม
     const MIN_POINTS_EXCHANGE = 100000; // ขั้นต่ำ 100,000 แต้ม
-    const GAME_WALLET = 'YOUR_GAME_WALLET_ADDRESS'; // ใส่ Wallet Address ที่เก็บ POL
-    const KUBA_ADDRESS = '0x8eFc217Bb56e9081455171002F80b84737cB4468';
-    const ERC20_ABI = [
-      'function balanceOf(address) view returns (uint256)',
-      'function transfer(address to, uint256 amount) public returns (bool)'
-    ];
 
     // Load / Save
     function loadGame() {
@@ -255,49 +199,19 @@
     }
 
     // Init
-    async function initWallet() {
-      try {
-        loadGame();
-        provider = new ethers.providers.JsonRpcProvider('https://polygon-rpc.com');
-        let pk = localStorage.getItem('kuba_private_key');
-        if (!pk) { 
-          wallet = ethers.Wallet.createRandom(); 
-          localStorage.setItem('kuba_private_key', wallet.privateKey); 
-          alert(`สร้าง Wallet แล้ว!\nที่อยู่: ${wallet.address}\nกรุณาเติม POL เพื่อฝาก/ถอน\nคัดลอกที่อยู่นี้ไปใช้ใน MetaMask หรือ wallet อื่น`);
-        } else {
-          wallet = new ethers.Wallet(pk, provider);
-        }
-        signer = wallet.connect(provider);
-        document.getElementById('gameWalletAddress').innerText = GAME_WALLET;
-        regenerateEnergy();
-        setupTap();
-        updateBalances();
-        setInterval(updateBalances, 10000);
-      } catch (e) {
-        alert('เกิดข้อผิดพลาดในการเริ่มเกม: ' + e.message);
-      }
+    function initGame() {
+      loadGame();
+      regenerateEnergy();
+      setupTap();
+      updateBalances();
+      setInterval(updateBalances, 10000);
     }
 
     // === BALANCE UPDATE ===
-    async function updateBalances() {
-      try {
-        const polBal = await provider.getBalance(GAME_WALLET);
-        const kubaContract = new ethers.Contract(KUBA_ADDRESS, ERC20_ABI, provider);
-        const kubaBal = await kubaContract.balanceOf(GAME_WALLET);
-        const polFormatted = parseFloat(ethers.utils.formatEther(polBal)).toFixed(6);
-        const kubaFormatted = parseFloat(ethers.utils.formatUnits(kubaBal, 18)).toFixed(4);
-        document.getElementById('kubaBalance').innerText = kubaBalanceGame.toFixed(4);
-        document.getElementById('polBalance').innerText = polFormatted;
-        document.getElementById('polBalanceModal').innerText = polFormatted;
-        document.getElementById('kubaBalanceExchange').innerText = kubaBalanceGame.toFixed(4);
-        logAction('balance_update', { pol: polFormatted, kuba: kubaBalanceGame });
-      } catch (e) {
-        document.getElementById('kubaBalance').innerText = kubaBalanceGame.toFixed(4);
-        document.getElementById('polBalance').innerText = '0';
-        document.getElementById('polBalanceModal').innerText = '0';
-        document.getElementById('kubaBalanceExchange').innerText = kubaBalanceGame.toFixed(4);
-        logAction('balance_error', { error: e.message });
-      }
+    function updateBalances() {
+      document.getElementById('kubaBalance').innerText = kubaBalanceGame.toFixed(4);
+      document.getElementById('kubaBalanceExchange').innerText = kubaBalanceGame.toFixed(4);
+      logAction('balance_update', { kuba: kubaBalanceGame });
     }
 
     // === TAP SYSTEM ===
@@ -397,89 +311,12 @@
       closeExchange();
     }
 
-    // === WALLET SYSTEM ===
-    function openWallet() {
-      document.getElementById('walletModal').style.display = 'block';
-      document.getElementById('walletAmount').value = '';
-      document.getElementById('destinationAddress').value = '';
-      document.getElementById('walletOutputAmount').innerText = '0';
-      document.getElementById('txInfo').style.display = 'none';
-      setWalletMode('deposit-pol');
-      updateBalances();
-    }
-
-    function closeWallet() {
-      document.getElementById('walletModal').style.display = 'none';
-    }
-
-    function copyGameWallet() {
-      navigator.clipboard.writeText(GAME_WALLET);
-      alert(`คัดลอกที่อยู่กระเป๋าแล้ว!\n${GAME_WALLET}\nส่ง POL ไปที่นี้ในเครือข่าย Polygon (MATIC)`);
-      logAction('copy_wallet', { address: GAME_WALLET });
-    }
-
-    function setWalletMode(m) {
-      walletMode = m;
-      document.getElementById('walletInputLabel').innerText = m === 'deposit-pol' ? 'จำนวน POL ที่ฝาก (ใส่หลังโอน)' : 'จำนวน POL ที่ถอน';
-      document.getElementById('walletAmount').placeholder = '0.1';
-      document.getElementById('amountInput').style.display = 'block';
-      document.getElementById('addressInput').style.display = m === 'withdraw-pol' ? 'block' : 'none';
-      document.getElementById('walletOutputUnit').innerText = 'POL';
-      calculateWalletOutput();
-    }
-
-    function calculateWalletOutput() {
-      const input = parseFloat(document.getElementById('walletAmount').value) || 0;
-      document.getElementById('walletOutputAmount').innerText = input.toLocaleString();
-      document.getElementById('walletOutputUnit').innerText = 'POL';
-    }
-
-    async function executeWalletAction() {
-      const input = parseFloat(document.getElementById('walletAmount').value);
-      const destAddress = document.getElementById('destinationAddress').value;
-      if (walletMode === 'withdraw-pol' && !destAddress.match(/^0x[a-fA-F0-9]{40}$/)) {
-        return alert('กรุณาใส่ที่อยู่ wallet ที่ถูกต้อง (0x...)');
-      }
-      if (input <= 0) return alert('กรุณาใส่จำนวน');
-
-      try {
-        if (walletMode === 'deposit-pol') {
-          logAction('deposit_pol', { amount: input });
-          alert(`ยืนยันการฝากสำเร็จ! +${input.toLocaleString()} POL\nกรุณาโอน ${input} POL ไปที่ ${GAME_WALLET} ในเครือข่าย Polygon`);
-        } else if (walletMode === 'withdraw-pol') {
-          const polBal = await provider.getBalance(GAME_WALLET);
-          const neededPol = ethers.utils.parseEther(input.toString());
-          if (polBal.lt(neededPol)) {
-            return alert(`POL ใน GAME_WALLET ไม่พอ! มี ${ethers.utils.formatEther(polBal)} POL`);
-          }
-          const tx = await signer.sendTransaction({
-            to: destAddress,
-            value: neededPol
-          });
-          await tx.wait();
-          logAction('withdraw_pol', { amount: input, to: destAddress, tx: tx.hash });
-          alert(`ถอนสำเร็จ! ${input} POL ไปที่ ${destAddress}`);
-          showTx(tx.hash);
-        }
-        updateBalances();
-      } catch (e) {
-        logAction('wallet_error', { error: e.message });
-        alert('ผิดพลาด: ' + (e.message || 'Transaction failed'));
-      }
-      closeWallet();
-    }
-
-    function showTx(hash) {
-      document.getElementById('txInfo').style.display = 'block';
-      document.getElementById('txLink').href = `https://polygonscan.com/tx/${hash}`;
-      document.getElementById('txLink').innerText = hash.slice(0, 10) + '...';
-    }
-
     // === RESTORE SYSTEM ===
     function openRestore() {
       document.getElementById('restoreModal').style.display = 'block';
       document.getElementById('restorePoints').value = '';
       document.getElementById('restoreKuba').value = '';
+      document.getElementById('restoreLevel').value = '';
     }
 
     function closeRestore() {
@@ -489,6 +326,7 @@
     function restoreBalance() {
       const restorePoints = parseFloat(document.getElementById('restorePoints').value) || 0;
       const restoreKuba = parseFloat(document.getElementById('restoreKuba').value) || 0;
+      const restoreLevel = parseInt(document.getElementById('restoreLevel').value) || 1;
       if (restorePoints > 0) {
         points = Math.max(points, restorePoints);
         logAction('restore_points', { points: restorePoints });
@@ -499,9 +337,27 @@
         logAction('restore_kuba', { kuba: restoreKuba });
         alert(`กู้คืน ${restoreKuba.toLocaleString()} KUBA สำเร็จ!`);
       }
+      if (restoreLevel > level && restoreLevel <= MAX_LEVEL) {
+        level = restoreLevel;
+        tapPower = level;
+        maxEnergy = level * 100;
+        energy = Math.min(energy, maxEnergy);
+        logAction('restore_level', { level: restoreLevel });
+        alert(`กู้คืนระดับ ${restoreLevel} สำเร็จ!`);
+      }
       saveGame();
       updateUI();
       closeRestore();
+    }
+
+    // === CHECK LOGS ===
+    function checkLogs() {
+      let logs = JSON.parse(localStorage.getItem('kuba_logs')) || [];
+      let logText = 'ประวัติการกระทำล่าสุด:\n\n';
+      logs.slice(-5).forEach(log => {
+        logText += `[${log.timestamp}] ${log.type}: ${JSON.stringify(log.data)}\n`;
+      });
+      alert(logText);
     }
 
     // === REWARD, UPGRADE ===
@@ -582,7 +438,7 @@
     // Start
     Telegram.WebApp.ready(); 
     Telegram.WebApp.expand(); 
-    initWallet();
+    initGame();
   </script>
 </body>
 </html>
