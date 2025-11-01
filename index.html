@@ -8,18 +8,43 @@
   <script src='//libtl.com/sdk.js' data-zone='10111635' data-sdk='show_10111635'></script>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
-    body { background:#0f0f1a; color:#fff; font-family:Arial, sans-serif; text-align:center; padding:10px; overflow:hidden; }
+    *:focus { outline: none; } /* ลบ focus ring ทุก element */
+    body { 
+      background:#0f0f1a url('https://images.unsplash.com/photo-1447433693259-c8549e352d5d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80') no-repeat center center fixed; 
+      background-size: cover; /* ทำให้ภาพพื้นหลังเต็มหน้าจอ */
+      color:#fff; 
+      font-family:Arial, sans-serif; 
+      text-align:center; 
+      padding:10px; 
+      overflow:hidden; 
+    }
     .container { max-width:400px; margin:auto; }
-    .topbar { display:flex; justify-content:space-between; align-items:flex-start; padding:10px 0; font-size:14px; }
+    .topbar { 
+      display:flex; 
+      justify-content:space-between; 
+      align-items:flex-start; 
+      padding:10px 0; 
+      font-size:14px; 
+      background: rgba(0, 0, 0, 0.5); /* เพิ่มพื้นหลังกึ่งโปร่งใสให้ topbar เพื่อให้มองเห็นข้อความชัด */
+      border-radius: 8px;
+    }
     .topbar .left { color:#ffd700; font-weight:bold; }
     .topbar .right { text-align:right; line-height:1.4; color:#aaa; font-size:12px; }
 
     h1 { font-size:28px; margin:15px 0; font-weight:bold; color:#ffd700; text-shadow:0 0 8px #ffd700; }
     
     button {
-      background:none; color:#fff; border:none; 
-      padding:14px; border-radius:16px; font-weight:bold; font-size:16px; 
-      margin:10px auto; width:92%; transition:0.2s; display:block;
+      background:none; 
+      color:#fff; 
+      border:none; 
+      padding:14px; 
+      border-radius:16px; 
+      font-weight:bold; 
+      font-size:16px; 
+      margin:10px auto; 
+      width:92%; 
+      transition:0.2s; 
+      display:block;
     }
     button:active { transform:scale(0.98); opacity:0.8; }
     .exchange-btn { color:#9c88ff; }
@@ -32,15 +57,25 @@
     .energy-text { color:#4ade80; font-weight:bold; }
 
     .bald { 
-      width:180px; height:180px; margin:25px auto; cursor:pointer; user-select:none; 
-      outline:none; /* ลบกรอบสี่เหลี่ยม */
+      width:180px; 
+      height:180px; 
+      margin:25px auto; 
+      cursor:pointer; 
+      user-select:none; 
+      outline:none; 
+      border:none; /* ลบกรอบ */
     }
     .bald img { 
-      width:100%; height:100%; border-radius:50%; transition:0.2s; 
-      outline:none; /* ลบกรอบสี่เหลี่ยม */
+      width:100%; 
+      height:100%; 
+      border-radius:50%; 
+      transition:0.2s; 
+      outline:none; 
+      border:none; /* ลบกรอบ */
     }
     .bald:focus, .bald:active, .bald img:focus, .bald img:active { 
-      outline:none; /* ลบ focus ring */
+      outline:none; 
+      border:none; /* ลบกรอบเมื่อกดหรือโฟกัส */
     }
     .bald img:active { transform:scale(0.92); }
     .bald img.glow { box-shadow: 0 0 15px 5px #ffd700, 0 0 25px 10px rgba(255, 215, 0, 0.5); transition: box-shadow 0.2s; }
@@ -54,14 +89,20 @@
     }
 
     .particle {
-      position:absolute; font-size:20px; pointer-events:none;
-      animation: fly 1s ease-out forwards; font-weight:bold;
-      color:#ffd700; text-shadow: 0 0 5px #ffd700;
+      position:absolute; 
+      font-size:20px; 
+      pointer-events:none;
+      animation: fly 1s ease-out forwards; 
+      font-weight:bold;
+      color:#ffd700; 
+      text-shadow: 0 0 5px #ffd700;
     }
     @keyframes fly { to { transform:translateY(-120px); opacity:0; } }
 
     .particle.sparkle {
-      font-size:16px; color:#ffffff; text-shadow:0 0 8px #ffffff;
+      font-size:16px; 
+      color:#ffffff; 
+      text-shadow:0 0 8px #ffffff;
       animation: sparkle 0.8s ease-out forwards;
     }
     @keyframes sparkle {
@@ -69,8 +110,26 @@
       100% { transform: translateY(-50px) scale(0.5); opacity: 0; }
     }
 
-    .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:999; overflow-y:auto; }
-    .modal-content { background:#1a1a2e; margin:5% auto; padding:20px; width:90%; border-radius:24px; text-align:center; max-width:400px; }
+    .modal { 
+      display:none; 
+      position:fixed; 
+      top:0; 
+      left:0; 
+      width:100%; 
+      height:100%; 
+      background:rgba(0,0,0,0.95); 
+      z-index:999; 
+      overflow-y:auto; 
+    }
+    .modal-content { 
+      background:#1a1a2e; 
+      margin:5% auto; 
+      padding:20px; 
+      width:90%; 
+      border-radius:24px; 
+      text-align:center; 
+      max-width:400px; 
+    }
     
     .redeem-container { padding:20px; margin:15px 0; }
     .redeem-title { font-size:22px; color:#ffd700; margin-bottom:15px; text-shadow:0 0 8px #ffd700; }
