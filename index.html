@@ -26,8 +26,6 @@
     .reward-btn { color:#ff6b6b; }
     .upgrade-btn { color:#f39c12; }
     .refer-btn { color:#2ed573; }
-    .restore-btn { color:#e67e22; }
-    .check-btn { color:#3498db; }
 
     .info { font-size:14px; margin:8px 0; color:#aaa; }
     .highlight { color:#ffd700; font-weight:bold; }
@@ -67,8 +65,6 @@
 
     <button class="exchange-btn" onclick="openExchange()">แลกเปลี่ยน</button>
     <button class="reward-btn" id="rewardButton" onclick="showRewardChoice()">รับรางวัล</button>
-    <button class="restore-btn" onclick="openRestore()">กู้คืนแต้ม/KUBA</button>
-    <button class="check-btn" onclick="checkLogs()">ตรวจสอบยอด</button>
     <div class="info" style="margin:0 0 15px 0;">Level: <span class="highlight" id="level">1</span></div>
 
     <div class="bald" id="baldHead">
@@ -118,29 +114,6 @@
     </div>
   </div>
 
-  <!-- Restore Modal -->
-  <div id="restoreModal" class="modal">
-    <div class="modal-content">
-      <div class="redeem-container">
-        <h3 class="redeem-title">กู้คืนแต้ม/KUBA</h3>
-        <div class="input-group">
-          <label>จำนวนแต้มที่ควรมี</label>
-          <input type="number" id="restorePoints" placeholder="1000000">
-        </div>
-        <div class="input-group">
-          <label>จำนวน KUBA ที่ควรมี</label>
-          <input type="number" id="restoreKuba" placeholder="100">
-        </div>
-        <div class="input-group">
-          <label>ระดับ (Level) ที่ควรมี</label>
-          <input type="number" id="restoreLevel" placeholder="1">
-        </div>
-        <button style="background:#e67e22; color:#fff;" onclick="restoreBalance()">กู้คืน</button>
-      </div>
-      <button class="close-btn" onclick="closeRestore()">ปิด</button>
-    </div>
-  </div>
-
   <!-- Reward Modal -->
   <div id="rewardModal" class="modal">
     <div class="modal-content">
@@ -169,6 +142,9 @@
     // Config
     const POINTS_PER_KUBA = 10000; // 1 KUBA = 10,000 แต้ม
     const MIN_POINTS_EXCHANGE = 100000; // ขั้นต่ำ 100,000 แต้ม
+    const RESTORE_POINTS = 1000000; // แต้มที่กู้คืน (เปลี่ยนตามข้อมูลจริง)
+    const RESTORE_KUBA = 100; // KUBA ที่กู้คืน (เปลี่ยนตามข้อมูลจริง)
+    const RESTORE_LEVEL = 10; // ระดับที่กู้คืน (เปลี่ยนตามข้อมูลจริง)
 
     // Load / Save
     function loadGame() {
@@ -200,7 +176,17 @@
 
     // Init
     function initGame() {
-      loadGame();
+      // กู้คืนแต้ม, KUBA, และระดับอัตโนมัติ
+      points = Math.max(parseFloat(localStorage.getItem('kuba_points')) || 0, RESTORE_POINTS);
+      kubaBalanceGame = Math.max(parseFloat(localStorage.getItem('kuba_balance_game')) || 0, RESTORE_KUBA);
+      level = Math.max(parseInt(localStorage.getItem('kuba_level')) || 1, RESTORE_LEVEL);
+      tapPower = level;
+      maxEnergy = level * 100;
+      energy = parseFloat(localStorage.getItem('kuba_energy')) || maxEnergy;
+      energy = Math.min(energy, maxEnergy);
+      if (points < 0) points = 0;
+      logAction('init_restore', { points, kubaBalanceGame, level });
+      saveGame();
       regenerateEnergy();
       setupTap();
       updateBalances();
@@ -309,55 +295,6 @@
       saveGame();
       updateUI();
       closeExchange();
-    }
-
-    // === RESTORE SYSTEM ===
-    function openRestore() {
-      document.getElementById('restoreModal').style.display = 'block';
-      document.getElementById('restorePoints').value = '';
-      document.getElementById('restoreKuba').value = '';
-      document.getElementById('restoreLevel').value = '';
-    }
-
-    function closeRestore() {
-      document.getElementById('restoreModal').style.display = 'none';
-    }
-
-    function restoreBalance() {
-      const restorePoints = parseFloat(document.getElementById('restorePoints').value) || 0;
-      const restoreKuba = parseFloat(document.getElementById('restoreKuba').value) || 0;
-      const restoreLevel = parseInt(document.getElementById('restoreLevel').value) || 1;
-      if (restorePoints > 0) {
-        points = Math.max(points, restorePoints);
-        logAction('restore_points', { points: restorePoints });
-        alert(`กู้คืน ${restorePoints.toLocaleString()} แต้มสำเร็จ!`);
-      }
-      if (restoreKuba > 0) {
-        kubaBalanceGame = Math.max(kubaBalanceGame, restoreKuba);
-        logAction('restore_kuba', { kuba: restoreKuba });
-        alert(`กู้คืน ${restoreKuba.toLocaleString()} KUBA สำเร็จ!`);
-      }
-      if (restoreLevel > level && restoreLevel <= MAX_LEVEL) {
-        level = restoreLevel;
-        tapPower = level;
-        maxEnergy = level * 100;
-        energy = Math.min(energy, maxEnergy);
-        logAction('restore_level', { level: restoreLevel });
-        alert(`กู้คืนระดับ ${restoreLevel} สำเร็จ!`);
-      }
-      saveGame();
-      updateUI();
-      closeRestore();
-    }
-
-    // === CHECK LOGS ===
-    function checkLogs() {
-      let logs = JSON.parse(localStorage.getItem('kuba_logs')) || [];
-      let logText = 'ประวัติการกระทำล่าสุด:\n\n';
-      logs.slice(-5).forEach(log => {
-        logText += `[${log.timestamp}] ${log.type}: ${JSON.stringify(log.data)}\n`;
-      });
-      alert(logText);
     }
 
     // === REWARD, UPGRADE ===
