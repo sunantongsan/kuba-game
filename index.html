@@ -492,6 +492,29 @@
       document.getElementById('upgradeCost').innerText = cost;
     }
 
+    // เพิ่มการตรวจจับ "kuba" ผ่าน Telegram Web App
+    document.addEventListener('DOMContentLoaded', () => {
+      const tg = window.Telegram.WebApp;
+      tg.ready();
+      tg.expand();
+
+      // ตรวจสอบ initDataUnsafe เพื่อดู start_param
+      const initDataUnsafe = tg.initDataUnsafe || {};
+      const startParam = initDataUnsafe.start_param || '';
+      if (startParam.toLowerCase().includes('kuba')) {
+        // ถ้าพบ "kuba" ใน start parameter แสดงข้อความและปุ่มในหน้าเกม
+        const kubaResponse = document.createElement('div');
+        kubaResponse.innerHTML = `
+          <h2 style="color: #ffd700; margin: 20px 0;">พบคำว่า "kuba"!</h2>
+          <p style="color: #aaa; margin-bottom: 20px;">นี่คือเกม KUBAMINER ของเรา - ขุดเหรียญ KUBA ฟรี!</p>
+          <button class="exchange-btn" onclick="tg.openLink('https://t.me/kubaminer_bot/app')">เล่น KUBAMINER</button>
+          <button class="reward-btn" onclick="tg.openLink('https://sunantongsan.github.io/kuba-game/share-ad.html')">รับ Airdrop</button>
+          <button class="exchange-btn" onclick="tg.close()">ปิด</button>
+        `;
+        document.querySelector('.container').insertBefore(kubaResponse, document.querySelector('.bald'));
+      }
+    });
+
     // Start
     Telegram.WebApp.ready(); 
     Telegram.WebApp.expand(); 
