@@ -10,8 +10,8 @@
     * { margin:0; padding:0; box-sizing:border-box; }
     *:focus { outline: none; } /* ลบ focus ring ทุก element */
     body { 
-      background:#0f0f1a url('https://images.unsplash.com/photo-1447433693259-c8549e352d5d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80') no-repeat center center fixed; 
-      background-size: cover; /* ทำให้ภาพพื้นหลังเต็มหน้าจอ */
+      background: linear-gradient(rgba(135, 206, 235, 0.8), rgba(135, 206, 235, 0.8)), url('https://sunantongsan.github.io/kuba-game/background.jpg') no-repeat center center fixed; 
+      background-size: cover; /* ทำให้ภาพเต็มหน้าจอ */
       color:#fff; 
       font-family:Arial, sans-serif; 
       text-align:center; 
@@ -25,7 +25,7 @@
       align-items:flex-start; 
       padding:10px 0; 
       font-size:14px; 
-      background: rgba(0, 0, 0, 0.5); /* เพิ่มพื้นหลังกึ่งโปร่งใสให้ topbar เพื่อให้มองเห็นข้อความชัด */
+      background: rgba(0, 0, 0, 0.6); /* พื้นหลังกึ่งโปร่งใสเพื่ออ่านง่าย */
       border-radius: 8px;
     }
     .topbar .left { color:#ffd700; font-weight:bold; }
@@ -34,7 +34,7 @@
     h1 { font-size:28px; margin:15px 0; font-weight:bold; color:#ffd700; text-shadow:0 0 8px #ffd700; }
     
     button {
-      background:none; 
+      background: rgba(0,0,0,0.4); /* พื้นหลังกึ่งโปร่งใสให้ปุ่มเด่น */
       color:#fff; 
       border:none; 
       padding:14px; 
@@ -52,7 +52,7 @@
     .upgrade-btn { color:#f39c12; }
     .refer-btn { color:#2ed573; }
 
-    .info { font-size:14px; margin:8px 0; color:#aaa; }
+    .info { font-size:14px; margin:8px 0; color:#aaa; background: rgba(0,0,0,0.4); padding:5px; border-radius:8px; }
     .highlight { color:#ffd700; font-weight:bold; }
     .energy-text { color:#4ade80; font-weight:bold; }
 
@@ -63,7 +63,7 @@
       cursor:pointer; 
       user-select:none; 
       outline:none; 
-      border:none; /* ลบกรอบ */
+      border:none; 
     }
     .bald img { 
       width:100%; 
@@ -71,11 +71,11 @@
       border-radius:50%; 
       transition:0.2s; 
       outline:none; 
-      border:none; /* ลบกรอบ */
+      border:none; 
     }
     .bald:focus, .bald:active, .bald img:focus, .bald img:active { 
       outline:none; 
-      border:none; /* ลบกรอบเมื่อกดหรือโฟกัส */
+      border:none; 
     }
     .bald img:active { transform:scale(0.92); }
     .bald img.glow { box-shadow: 0 0 15px 5px #ffd700, 0 0 25px 10px rgba(255, 215, 0, 0.5); transition: box-shadow 0.2s; }
