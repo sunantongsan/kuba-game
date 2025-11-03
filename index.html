@@ -25,8 +25,7 @@
       align-items: flex-start; 
       padding: 10px; 
       font-size: 16px;
-      background: rgba(0, 0, 0, 0.7);
-      border-radius: 8px;
+      /* ลบ background ออก */
     }
     .topbar .left { 
       color: #FFD700; 
@@ -54,13 +53,13 @@
       margin: 10px 0;
     }
     button {
-      background: rgba(0, 0, 0, 0.5);
-      border: none; /* ลบกรอบสีดำ */
+      background: none; /* ลบพื้นหลัง */
+      border: none; /* ลบกรอบ */
       color: #FFFFFF; 
-      padding: 10px 14px; /* ลด padding เพื่อให้กรอบเล็กลง */
-      border-radius: 12px; /* ลดขนาด border-radius */
+      padding: 10px 14px; 
+      border-radius: 12px; 
       font-weight: bold; 
-      font-size: 16px; /* ลดขนาดตัวอักษรเล็กน้อย */
+      font-size: 16px;
       margin: 10px 0; 
       width: 92%; 
       transition: 0.2s; 
@@ -71,21 +70,21 @@
     button:active { transform: scale(0.98); opacity: 0.8; }
     .exchange-btn { 
       color: #9C88FF; 
-      width: auto; /* ปรับขนาดให้พอดีกับข้อความ */
-      margin-left: auto; /* ชิดขวา */
+      width: auto; 
+      margin-left: auto; 
     }
     .reward-btn { color: #FF6B6B; }
     .upgrade-btn { color: #F39C12; }
     .refer-btn { color: #2ED573; }
     .leaderboard-btn { 
       color: #00C4FF; 
-      background: rgba(0, 196, 255, 0.3);
-      border: none; /* ลบกรอบสีดำ */
+      background: none; /* ลบพื้นหลัง */
+      border: none; 
       box-shadow: 0 0 8px #00C4FF;
       font-size: 14px;
       padding: 8px 16px;
       width: auto;
-      margin-right: auto; /* ชิดซ้าย */
+      margin-right: auto;
       display: inline-block;
       text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
     }
@@ -93,10 +92,8 @@
       font-size: 16px;
       margin: 8px 0; 
       color: #E0E0E0;
-      background: rgba(0, 0, 0, 0.5);
       padding: 8px; 
-      border-radius: 8px; 
-      border: none; /* ลบกรอบสีดำ */
+      border: none; /* ลบกรอบ */
       text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
     }
     .highlight { 
@@ -176,12 +173,11 @@
       overflow-y: auto; 
     }
     .modal-content { 
-      background: #1A1A2E; 
+      background: none; /* ลบพื้นหลัง */
       margin: 5% auto; 
       padding: 20px; 
       width: 90%; 
-      border-radius: 24px; 
-      border: none; /* ลบกรอบสีดำ */
+      border: none; 
       text-align: center; 
       max-width: 400px; 
     }
@@ -207,13 +203,13 @@
 
     <h1>KUBAMINER</h1>
     <div class="button-row">
-      <button class="leaderboard-btn" onclick="openLeaderboard()">อันดับ</button>
-      <button class="exchange-btn" onclick="openExchange()">แลกเปลี่ยน</button>
+      <button class="leaderboard-btn" onclick="openLeaderboard()">Leaderboard</button>
+      <button class="exchange-btn" onclick="openExchange()">Exchange</button>
     </div>
 
-    <button class="reward-btn" id="rewardButton" onclick="showRewardChoice()">รับรางวัล</button>
+    <button class="reward-btn" id="rewardButton" onclick="showRewardChoice()">Claim Reward</button>
     <div class="info">
-      Level: <span class="highlight" id="level">1</span> | พลังงาน: <span class="energy-text" id="energy">100</span> / <span id="maxEnergy">100</span>
+      Level: <span class="highlight" id="level">1</span> | Energy: <span class="energy-text" id="energy">100</span> / <span id="maxEnergy">100</span>
     </div>
 
     <div class="bald-container">
@@ -222,72 +218,72 @@
       </div>
     </div>
 
-    <button class="upgrade-btn" onclick="upgradeCharacter()">อัปเกรด (<span id="upgradeCost">500</span> แต้ม)</button>
-    <button class="refer-btn" onclick="openReferralAd()">รับ Airdrop!</button>
+    <button class="upgrade-btn" onclick="upgradeCharacter()">Upgrade (<span id="upgradeCost">500</span> Points)</button>
+    <button class="refer-btn" onclick="openReferralAd()">Claim Airdrop!</button>
   </div>
 
   <!-- Exchange Modal -->
   <div id="exchangeModal" class="modal">
     <div class="modal-content">
       <div class="redeem-container">
-        <h3 class="redeem-title">แลกเปลี่ยน</h3>
+        <h3 class="redeem-title">Exchange</h3>
         <div class="contract-info">
-          <strong>ซื้อ KUBA:</strong> <a href="https://app.uniswap.org/#/swap?chain=polygon&inputCurrency=0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270&outputCurrency=0x8eFc217Bb56e9081455171002F80b84737cB4468" target="_blank">Uniswap</a>
+          <strong>Buy KUBA:</strong> <a href="https://app.uniswap.org/#/swap?chain=polygon&inputCurrency=0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270&outputCurrency=0x8eFc217Bb56e9081455171002F80b84737cB4468" target="_blank">Uniswap</a>
         </div>
         <div class="input-group">
-          <label>KUBA ของคุณ</label>
+          <label>Your KUBA</label>
           <div style="font-size:28px; color:#FFD700; text-align:right;" id="kubaBalanceExchange">0</div>
         </div>
         <div style="display:flex; gap:10px; margin:15px 0;">
-          <button class="exchange-btn" onclick="setExchangeMode('kuba-to-points')" style="flex:1;">KUBA → แต้ม</button>
-          <button class="exchange-btn" onclick="setExchangeMode('points-to-kuba')" style="flex:1;">แต้ม → KUBA</button>
+          <button class="exchange-btn" onclick="setExchangeMode('kuba-to-points')" style="flex:1;">KUBA → Points</button>
+          <button class="exchange-btn" onclick="setExchangeMode('points-to-kuba')" style="flex:1;">Points → KUBA</button>
         </div>
         <div class="input-group">
-          <label id="inputLabel">จำนวน KUBA</label>
+          <label id="inputLabel">KUBA Amount</label>
           <input type="number" id="inputAmount" placeholder="10" oninput="calculateOutput()">
         </div>
         <div class="input-group">
-          <label>คุณจะได้รับ/ใช้</label>
+          <label>You will receive/spend</label>
           <div style="font-size:28px; color:#4ADE80; text-align:right;" id="outputAmount">0</div>
-          <div style="font-size:14px; color:#E0E0E0; text-align:right;" id="outputUnit">แต้ม</div>
+          <div style="font-size:14px; color:#E0E0E0; text-align:right;" id="outputUnit">Points</div>
         </div>
-        <button style="background:none; border:none; color:#4ADE80;" onclick="executeExchange()">แลกเปลี่ยน</button>
+        <button style="background:none; border:none; color:#4ADE80;" onclick="executeExchange()">Exchange</button>
       </div>
-      <button class="close-btn" onclick="closeExchange()">ปิด</button>
+      <button class="close-btn" onclick="closeExchange()">Close</button>
     </div>
   </div>
 
   <!-- Reward Modal -->
   <div id="rewardModal" class="modal">
     <div class="modal-content">
-      <h3 style="color:#FFD700; margin-bottom:15px;">เลือกของรางวัล!</h3>
+      <h3 style="color:#FFD700; margin-bottom:15px;">Choose Your Reward!</h3>
       <div style="margin:15px 0; font-size:16px; color:#FFFFFF;">
-        ดูโฆษณาเสร็จแล้ว! รับรางวัลอย่างใดอย่างหนึ่ง:
+        Ad watched! Choose one reward:
       </div>
       <button style="background:none; border:none; color:#4ADE80; margin:10px; padding:14px; border-radius:12px; font-weight:bold; font-size:16px;" onclick="claimPointsReward()">
-        รับ <span id="pointsRewardAmount">300</span> แต้ม
+        Receive <span id="pointsRewardAmount">300</span> Points
       </button>
       <button style="background:none; border:none; color:#F39C12; margin:10px; padding:14px; border-radius:12px; font-weight:bold; font-size:16px;" onclick="claimEnergyReward()">
-        รับพลังงาน 50%
+        Receive 50% Energy
       </button>
-      <button style="background:none; border:none; color:#E74C3C;" onclick="closeRewardModal()">ยกเลิก</button>
+      <button style="background:none; border:none; color:#E74C3C;" onclick="closeRewardModal()">Cancel</button>
     </div>
   </div>
 
   <!-- Leaderboard Modal -->
   <div id="leaderboardModal" class="modal">
     <div class="modal-content">
-      <h3 style="color:#FFD700; margin-bottom:15px;">อันดับผู้เล่น</h3>
+      <h3 style="color:#FFD700; margin-bottom:15px;">Player Leaderboard</h3>
       <div style="margin:10px 0; font-size:16px; color:#E0E0E0;">
-        จำนวนผู้เล่นทั้งหมด: <span id="totalPlayers">0</span> คน
+        Total Players: <span id="totalPlayers">0</span>
       </div>
       <div id="leaderboardList" style="margin:15px 0; font-size:16px; color:#FFFFFF; text-align:left; max-height:300px; overflow-y:auto;">
-        <!-- รายชื่ออันดับจะถูกเติมที่นี่ -->
+        <!-- Leaderboard entries will be populated here -->
       </div>
       <div style="margin:15px 0; font-size:16px; color:#FFD700;">
-        อันดับของคุณ: <span id="playerRank">กำลังโหลด...</span>
+        Your Rank: <span id="playerRank">Loading...</span>
       </div>
-      <button class="close-btn" onclick="closeLeaderboard()">ปิด</button>
+      <button class="close-btn" onclick="closeLeaderboard()">Close</button>
     </div>
   </div>
 
@@ -359,7 +355,7 @@
         if (isTaping) return;
         isTaping = true;
         if (energy < tapPower) {
-          alert('พลังงานไม่พอ!');
+          alert('Not enough energy!');
           isTaping = false;
           return;
         }
@@ -428,9 +424,9 @@
     }
     function setExchangeMode(m) {
       exchangeMode = m;
-      document.getElementById('inputLabel').innerText = m === 'kuba-to-points' ? 'จำนวน KUBA' : 'จำนวนแต้ม';
+      document.getElementById('inputLabel').innerText = m === 'kuba-to-points' ? 'KUBA Amount' : 'Points Amount';
       document.getElementById('inputAmount').placeholder = m === 'kuba-to-points' ? '10' : '100000';
-      document.getElementById('outputUnit').innerText = m === 'kuba-to-points' ? 'แต้ม' : 'KUBA';
+      document.getElementById('outputUnit').innerText = m === 'kuba-to-points' ? 'Points' : 'KUBA';
       calculateOutput();
     }
     function calculateOutput() {
@@ -440,22 +436,22 @@
     }
     function executeExchange() {
       const input = parseFloat(document.getElementById('inputAmount').value);
-      if (input <= 0) return alert('กรุณาใส่จำนวน');
+      if (input <= 0) return alert('Please enter an amount');
       if (exchangeMode === 'kuba-to-points') {
-        if (input < 10) return alert('ขั้นต่ำ 10 KUBA!');
-        if (kubaBalanceGame < input) return alert(`KUBA ไม่พอ! มี ${kubaBalanceGame.toFixed(4)} KUBA`);
+        if (input < 10) return alert('Minimum 10 KUBA!');
+        if (kubaBalanceGame < input) return alert(`Not enough KUBA! You have ${kubaBalanceGame.toFixed(4)} KUBA`);
         kubaBalanceGame -= input;
         points += input * POINTS_PER_KUBA;
         logAction('exchange_kuba_to_points', { kuba: input, points: input * POINTS_PER_KUBA });
-        alert(`แลกสำเร็จ! +${(input * POINTS_PER_KUBA).toLocaleString()} แต้ม`);
+        alert(`Exchange successful! +${(input * POINTS_PER_KUBA).toLocaleString()} Points`);
       } else {
-        if (input < MIN_POINTS_EXCHANGE) return alert(`ขั้นต่ำ ${MIN_POINTS_EXCHANGE.toLocaleString()} แต้ม!`);
+        if (input < MIN_POINTS_EXCHANGE) return alert(`Minimum ${MIN_POINTS_EXCHANGE.toLocaleString()} Points!`);
         const neededPoints = input;
-        if (points < neededPoints) return alert(`แต้มไม่พอ! ต้องการ ${neededPoints.toLocaleString()} แต้ม`);
+        if (points < neededPoints) return alert(`Not enough Points! You need ${neededPoints.toLocaleString()} Points`);
         points -= neededPoints;
         kubaBalanceGame += input / POINTS_PER_KUBA;
         logAction('exchange_points_to_kuba', { points: neededPoints, kuba: input / POINTS_PER_KUBA });
-        alert(`แลกสำเร็จ! +${(input / POINTS_PER_KUBA).toLocaleString()} KUBA`);
+        alert(`Exchange successful! +${(input / POINTS_PER_KUBA).toLocaleString()} KUBA`);
       }
       saveGame();
       updateUI();
@@ -470,7 +466,7 @@
         document.getElementById('rewardModal').style.display = 'block';
         btn.disabled = false;
       }).catch(() => {
-        alert('กรุณาดูโฆษณาให้จบ');
+        alert('Please watch the ad to completion');
         btn.disabled = false;
       });
     }
@@ -485,7 +481,7 @@
       logAction('claim_points', { reward });
       saveGame();
       updateUI();
-      alert(`ได้รับ ${reward.toLocaleString()} แต้ม!`);
+      alert(`Received ${reward.toLocaleString()} Points!`);
       closeRewardModal();
     }
     function claimEnergyReward() {
@@ -495,7 +491,7 @@
       logAction('claim_energy', { reward });
       saveGame();
       updateUI();
-      alert(`ได้รับพลังงาน ${reward} หน่วย!`);
+      alert(`Received ${reward} Energy!`);
       closeRewardModal();
     }
     function closeRewardModal() {
@@ -505,7 +501,7 @@
     function upgradeCharacter() {
       if (level >= MAX_LEVEL) return alert('Max Level!');
       const cost = level === 99 ? 1500000 : 500 + level * 15000;
-      if (points < cost) return alert(`ต้องการ ${cost} แต้ม!`);
+      if (points < cost) return alert(`Need ${cost} Points!`);
       points -= cost;
       level++;
       tapPower = level;
@@ -529,7 +525,7 @@
     function getPlayerName() {
       const tg = window.Telegram.WebApp;
       const user = tg.initDataUnsafe.user;
-      return user ? (user.username || user.first_name || 'ผู้เล่นนิรนาม') : 'ผู้เล่นนิรนาม';
+      return user ? (user.username || user.first_name || 'Anonymous Player') : 'Anonymous Player';
     }
     function updateLeaderboard() {
       const playerName = getPlayerName();
@@ -562,7 +558,7 @@
         leaderboardList.appendChild(entryDiv);
       });
       const playerRank = leaderboard.findIndex(entry => entry.name === playerName) + 1;
-      document.getElementById('playerRank').innerText = playerRank ? `#${playerRank}` : 'ไม่มีอันดับ';
+      document.getElementById('playerRank').innerText = playerRank ? `#${playerRank}` : 'No Rank';
       document.getElementById('leaderboardModal').style.display = 'block';
     }
     function closeLeaderboard() {
@@ -577,11 +573,11 @@
       if (startParam.toLowerCase().includes('kuba')) {
         const kubaResponse = document.createElement('div');
         kubaResponse.innerHTML = `
-          <h2 style="color: #FFD700; margin: 20px 0;">พบคำว่า "kuba"!</h2>
-          <p style="color: #E0E0E0; margin-bottom: 20px;">นี่คือเกม KUBAMINER ของเรา - ขุดเหรียญ KUBA ฟรี!</p>
-          <button class="exchange-btn" onclick="tg.openLink('https://t.me/kubaminer_bot/app')">เล่น KUBAMINER</button>
-          <button class="reward-btn" onclick="tg.openLink('https://sunantongsan.github.io/kuba-game/share-ad.html')">รับ Airdrop</button>
-          <button class="exchange-btn" onclick="tg.close()">ปิด</button>
+          <h2 style="color: #FFD700; margin: 20px 0;">Found "kuba"!</h2>
+          <p style="color: #E0E0E0; margin-bottom: 20px;">This is our KUBAMINER game - mine KUBA coins for free!</p>
+          <button class="exchange-btn" onclick="tg.openLink('https://t.me/kubaminer_bot/app')">Play KUBAMINER</button>
+          <button class="reward-btn" onclick="tg.openLink('https://sunantongsan.github.io/kuba-game/share-ad.html')">Claim Airdrop</button>
+          <button class="exchange-btn" onclick="tg.close()">Close</button>
         `;
         document.querySelector('.container').insertBefore(kubaResponse, document.querySelector('.bald-container'));
       }
