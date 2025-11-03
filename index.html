@@ -47,15 +47,21 @@
       color: #FFD700; 
       text-shadow: 0 0 10px #FFD700, 0 0 20px #FFD700;
     }
+    .button-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 10px 0;
+    }
     button {
       background: rgba(0, 0, 0, 0.5);
-      border: 2px solid #FFFFFF;
+      border: none; /* ลบกรอบสีดำ */
       color: #FFFFFF; 
-      padding: 14px; 
-      border-radius: 16px; 
+      padding: 10px 14px; /* ลด padding เพื่อให้กรอบเล็กลง */
+      border-radius: 12px; /* ลดขนาด border-radius */
       font-weight: bold; 
-      font-size: 18px;
-      margin: 10px auto; 
+      font-size: 16px; /* ลดขนาดตัวอักษรเล็กน้อย */
+      margin: 10px 0; 
       width: 92%; 
       transition: 0.2s; 
       display: block;
@@ -63,19 +69,23 @@
       text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
     }
     button:active { transform: scale(0.98); opacity: 0.8; }
-    .exchange-btn { color: #9C88FF; }
+    .exchange-btn { 
+      color: #9C88FF; 
+      width: auto; /* ปรับขนาดให้พอดีกับข้อความ */
+      margin-left: auto; /* ชิดขวา */
+    }
     .reward-btn { color: #FF6B6B; }
     .upgrade-btn { color: #F39C12; }
     .refer-btn { color: #2ED573; }
     .leaderboard-btn { 
       color: #00C4FF; 
       background: rgba(0, 196, 255, 0.3);
-      border: 2px solid #00C4FF; 
+      border: none; /* ลบกรอบสีดำ */
       box-shadow: 0 0 8px #00C4FF;
       font-size: 14px;
       padding: 8px 16px;
       width: auto;
-      margin: 10px auto;
+      margin-right: auto; /* ชิดซ้าย */
       display: inline-block;
       text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
     }
@@ -86,6 +96,7 @@
       background: rgba(0, 0, 0, 0.5);
       padding: 8px; 
       border-radius: 8px; 
+      border: none; /* ลบกรอบสีดำ */
       text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
     }
     .highlight { 
@@ -170,6 +181,7 @@
       padding: 20px; 
       width: 90%; 
       border-radius: 24px; 
+      border: none; /* ลบกรอบสีดำ */
       text-align: center; 
       max-width: 400px; 
     }
@@ -194,20 +206,20 @@
     </div>
 
     <h1>KUBAMINER</h1>
-    <button class="leaderboard-btn" onclick="openLeaderboard()">อันดับ</button>
+    <div class="button-row">
+      <button class="leaderboard-btn" onclick="openLeaderboard()">อันดับ</button>
+      <button class="exchange-btn" onclick="openExchange()">แลกเปลี่ยน</button>
+    </div>
 
-    <button class="exchange-btn" onclick="openExchange()">แลกเปลี่ยน</button>
     <button class="reward-btn" id="rewardButton" onclick="showRewardChoice()">รับรางวัล</button>
-    <div class="info" style="margin:0 0 15px 0;">Level: <span class="highlight" id="level">1</span></div>
+    <div class="info">
+      Level: <span class="highlight" id="level">1</span> | พลังงาน: <span class="energy-text" id="energy">100</span> / <span id="maxEnergy">100</span>
+    </div>
 
     <div class="bald-container">
       <div class="bald" id="baldHead">
         <img id="baldImg" src="bald.png" alt="Tap" onerror="this.src='https://via.placeholder.com/300?text=TAP'" />
       </div>
-    </div>
-
-    <div class="info">
-      พลังงาน: <span class="energy-text" id="energy">100</span> / <span id="maxEnergy">100</span>
     </div>
 
     <button class="upgrade-btn" onclick="upgradeCharacter()">อัปเกรด (<span id="upgradeCost">500</span> แต้ม)</button>
