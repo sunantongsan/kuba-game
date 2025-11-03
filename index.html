@@ -8,154 +8,180 @@
   <script src='//libtl.com/sdk.js' data-zone='10111635' data-sdk='show_10111635'></script>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
-    *:focus { outline: none; } /* ลบ focus ring ทุก element */
+    *:focus { outline: none; }
     body { 
       background: linear-gradient(rgba(135, 206, 235, 0.8), rgba(135, 206, 235, 0.8)), url('https://sunantongsan.github.io/kuba-game/background.jpg') no-repeat center center fixed; 
-      background-size: cover; /* ทำให้ภาพเต็มหน้าจอ */
-      color:#fff; 
-      font-family:Arial, sans-serif; 
-      text-align:center; 
-      padding:10px; 
-      overflow:hidden; 
+      background-size: cover;
+      color: #FFFFFF;
+      font-family: Arial, sans-serif; 
+      text-align: center; 
+      padding: 10px; 
+      overflow: hidden; 
     }
-    .container { max-width:400px; margin:auto; }
+    .container { max-width: 400px; margin: auto; }
     .topbar { 
-      display:flex; 
-      justify-content:space-between; 
-      align-items:flex-start; 
-      padding:10px 0; 
-      font-size:14px; 
-      background: rgba(0, 0, 0, 0.6); /* พื้นหลังกึ่งโปร่งใสเพื่ออ่านง่าย */
+      display: flex; 
+      justify-content: space-between; 
+      align-items: flex-start; 
+      padding: 10px; 
+      font-size: 16px;
+      background: rgba(0, 0, 0, 0.7);
       border-radius: 8px;
     }
-    .topbar .left { color:#ffd700; font-weight:bold; }
-    .topbar .right { text-align:right; line-height:1.4; color:#aaa; font-size:12px; }
-
-    h1 { font-size:28px; margin:15px 0; font-weight:bold; color:#ffd700; text-shadow:0 0 8px #ffd700; }
-    
+    .topbar .left { 
+      color: #FFD700; 
+      font-weight: bold; 
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    }
+    .topbar .right { 
+      text-align: right; 
+      line-height: 1.4; 
+      color: #E0E0E0;
+      font-size: 14px; 
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    }
+    h1 { 
+      font-size: 32px;
+      margin: 15px 0; 
+      font-weight: bold; 
+      color: #FFD700; 
+      text-shadow: 0 0 10px #FFD700, 0 0 20px #FFD700;
+    }
     button {
-      background: none; /* ลบพื้นหลัง */
-      border: none; /* ลบกรอบ */
-      color:#fff; 
-      padding:14px; 
-      border-radius:16px; 
-      font-weight:bold; 
-      font-size:16px; 
-      margin:10px auto; 
-      width:92%; 
-      transition:0.2s; 
-      display:block;
-      text-decoration: underline; /* เพิ่มเส้นใต้เพื่อให้ดูเหมือนลิงก์ */
+      background: rgba(0, 0, 0, 0.5);
+      border: 2px solid #FFFFFF;
+      color: #FFFFFF; 
+      padding: 14px; 
+      border-radius: 16px; 
+      font-weight: bold; 
+      font-size: 18px;
+      margin: 10px auto; 
+      width: 92%; 
+      transition: 0.2s; 
+      display: block;
+      text-decoration: none;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
     }
-    button:active { transform:scale(0.98); opacity:0.8; }
-    .exchange-btn { color:#9c88ff; }
-    .reward-btn { color:#ff6b6b; }
-    .upgrade-btn { color:#f39c12; }
-    .refer-btn { color:#2ed573; }
+    button:active { transform: scale(0.98); opacity: 0.8; }
+    .exchange-btn { color: #9C88FF; }
+    .reward-btn { color: #FF6B6B; }
+    .upgrade-btn { color: #F39C12; }
+    .refer-btn { color: #2ED573; }
     .leaderboard-btn { 
-      color:#00c4ff; 
-      background: rgba(0, 196, 255, 0.2); /* พื้นหลังกึ่งโปร่งใส */
-      border: 2px solid #00c4ff; /* กรอบสีฟ้า */
-      box-shadow: 0 0 10px #00c4ff; /* เงาเรืองแสง */
-      font-size:18px; /* ขนาดตัวอักษรใหญ่ขึ้น */
-      padding:12px; /* ขนาดปุ่มใหญ่ขึ้น */
-      width:120px; /* ขนาดปุ่มเล็กลงเพื่อวางข้างการ์ตูน */
-      margin:0; /* ลบ margin เพื่อจัดตำแหน่ง */
+      color: #00C4FF; 
+      background: rgba(0, 196, 255, 0.3);
+      border: 2px solid #00C4FF; 
+      box-shadow: 0 0 8px #00C4FF;
+      font-size: 14px;
+      padding: 8px 16px;
+      width: auto;
+      margin: 10px auto;
+      display: inline-block;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
     }
-
-    .info { font-size:14px; margin:8px 0; color:#aaa; background: rgba(0,0,0,0.4); padding:5px; border-radius:8px; }
-    .highlight { color:#ffd700; font-weight:bold; }
-    .energy-text { color:#4ade80; font-weight:bold; }
-
+    .info { 
+      font-size: 16px;
+      margin: 8px 0; 
+      color: #E0E0E0;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 8px; 
+      border-radius: 8px; 
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    }
+    .highlight { 
+      color: #FFD700; 
+      font-weight: bold; 
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    }
+    .energy-text { 
+      color: #4ADE80; 
+      font-weight: bold; 
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    }
     .bald-container { 
-      display:flex; 
-      align-items:center; 
-      justify-content:center; 
-      margin:25px auto; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      margin: 25px auto; 
     }
     .bald { 
-      width:180px; 
-      height:180px; 
-      cursor:pointer; 
-      user-select:none; 
-      outline:none; 
-      border:none; 
+      width: 200px;
+      height: 200px; 
+      cursor: pointer; 
+      user-select: none; 
+      outline: none; 
+      border: none; 
     }
     .bald img { 
-      width:100%; 
-      height:100%; 
-      border-radius:50%; 
-      transition:0.2s; 
-      outline:none; 
-      border:none; 
+      width: 100%; 
+      height: 100%; 
+      border-radius: 50%; 
+      transition: 0.2s; 
+      outline: none; 
+      border: none; 
     }
     .bald:focus, .bald:active, .bald img:focus, .bald img:active { 
-      outline:none; 
-      border:none; 
+      outline: none; 
+      border: none; 
     }
-    .bald img:active { transform:scale(0.92); }
-    .bald img.glow { box-shadow: 0 0 15px 5px #ffd700, 0 0 25px 10px rgba(255, 215, 0, 0.5); transition: box-shadow 0.2s; }
+    .bald img:active { transform: scale(0.92); }
+    .bald img.glow { box-shadow: 0 0 15px 5px #FFD700, 0 0 25px 10px rgba(255, 215, 0, 0.5); transition: box-shadow 0.2s; }
     .bald img.shake { animation: shake 0.3s ease-in-out; }
-
     @keyframes shake {
       0%, 100% { transform: translateX(0); }
       25% { transform: translateX(-5px); }
       50% { transform: translateX(5px); }
       75% { transform: translateX(-3px); }
     }
-
     .particle {
-      position:absolute; 
-      font-size:20px; 
-      pointer-events:none;
+      position: absolute; 
+      font-size: 20px; 
+      pointer-events: none;
       animation: fly 1s ease-out forwards; 
-      font-weight:bold;
-      color:#ffd700; 
-      text-shadow: 0 0 5px #ffd700;
+      font-weight: bold;
+      color: #FFD700; 
+      text-shadow: 0 0 5px #FFD700;
     }
-    @keyframes fly { to { transform:translateY(-120px); opacity:0; } }
-
+    @keyframes fly { to { transform: translateY(-120px); opacity: 0; } }
     .particle.sparkle {
-      font-size:16px; 
-      color:#ffffff; 
-      text-shadow:0 0 8px #ffffff;
+      font-size: 16px; 
+      color: #FFFFFF; 
+      text-shadow: 0 0 8px #FFFFFF;
       animation: sparkle 0.8s ease-out forwards;
     }
     @keyframes sparkle {
       0% { transform: scale(1); opacity: 1; }
       100% { transform: translateY(-50px) scale(0.5); opacity: 0; }
     }
-
     .modal { 
-      display:none; 
-      position:fixed; 
-      top:0; 
-      left:0; 
-      width:100%; 
-      height:100%; 
-      background:rgba(0,0,0,0.95); 
-      z-index:999; 
-      overflow-y:auto; 
+      display: none; 
+      position: fixed; 
+      top: 0; 
+      left: 0; 
+      width: 100%; 
+      height: 100%; 
+      background: rgba(0, 0, 0, 0.95); 
+      z-index: 999; 
+      overflow-y: auto; 
     }
     .modal-content { 
-      background:#1a1a2e; 
-      margin:5% auto; 
-      padding:20px; 
-      width:90%; 
-      border-radius:24px; 
-      text-align:center; 
-      max-width:400px; 
+      background: #1A1A2E; 
+      margin: 5% auto; 
+      padding: 20px; 
+      width: 90%; 
+      border-radius: 24px; 
+      text-align: center; 
+      max-width: 400px; 
     }
-    
-    .redeem-container { padding:20px; margin:15px 0; }
-    .redeem-title { font-size:22px; color:#ffd700; margin-bottom:15px; text-shadow:0 0 8px #ffd700; }
-    .contract-info { color:#aaa; font-size:12px; margin:10px 0; word-break:break-all; }
-    .contract-info a { color:#4ade80; text-decoration:underline; }
-    .input-group { padding:16px; margin:10px 0; text-align:left; }
-    .input-group input { background:none; border:none; color:#fff; font-size:24px; text-align:right; width:100%; }
-    .input-group label { color:#aaa; font-size:14px; }
-    .close-btn { background:none; border:none; color:#e74c3c; margin:10px; padding:12px; border-radius:12px; font-size:14px; }
-    .balance-kuba { color:#ffd700; font-weight:bold; }
+    .redeem-container { padding: 20px; margin: 15px 0; }
+    .redeem-title { font-size: 22px; color: #FFD700; margin-bottom: 15px; text-shadow: 0 0 8px #FFD700; }
+    .contract-info { color: #E0E0E0; font-size: 12px; margin: 10px 0; word-break: break-all; }
+    .contract-info a { color: #4ADE80; text-decoration: underline; }
+    .input-group { padding: 16px; margin: 10px 0; text-align: left; }
+    .input-group input { background: none; border: none; color: #FFFFFF; font-size: 24px; text-align: right; width: 100%; }
+    .input-group label { color: #E0E0E0; font-size: 14px; }
+    .close-btn { background: none; border: none; color: #E74C3C; margin: 10px; padding: 12px; border-radius: 12px; font-size: 14px; }
+    .balance-kuba { color: #FFD700; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -168,6 +194,7 @@
     </div>
 
     <h1>KUBAMINER</h1>
+    <button class="leaderboard-btn" onclick="openLeaderboard()">อันดับ</button>
 
     <button class="exchange-btn" onclick="openExchange()">แลกเปลี่ยน</button>
     <button class="reward-btn" id="rewardButton" onclick="showRewardChoice()">รับรางวัล</button>
@@ -177,7 +204,6 @@
       <div class="bald" id="baldHead">
         <img id="baldImg" src="bald.png" alt="Tap" onerror="this.src='https://via.placeholder.com/300?text=TAP'" />
       </div>
-      <button class="leaderboard-btn" onclick="openLeaderboard()">อันดับ</button>
     </div>
 
     <div class="info">
@@ -198,26 +224,22 @@
         </div>
         <div class="input-group">
           <label>KUBA ของคุณ</label>
-          <div style="font-size:28px; color:#ffd700; text-align:right;" id="kubaBalanceExchange">0</div>
+          <div style="font-size:28px; color:#FFD700; text-align:right;" id="kubaBalanceExchange">0</div>
         </div>
-
         <div style="display:flex; gap:10px; margin:15px 0;">
           <button class="exchange-btn" onclick="setExchangeMode('kuba-to-points')" style="flex:1;">KUBA → แต้ม</button>
           <button class="exchange-btn" onclick="setExchangeMode('points-to-kuba')" style="flex:1;">แต้ม → KUBA</button>
         </div>
-
         <div class="input-group">
           <label id="inputLabel">จำนวน KUBA</label>
           <input type="number" id="inputAmount" placeholder="10" oninput="calculateOutput()">
         </div>
-
         <div class="input-group">
           <label>คุณจะได้รับ/ใช้</label>
-          <div style="font-size:28px; color:#4ade80; text-align:right;" id="outputAmount">0</div>
-          <div style="font-size:14px; color:#aaa; text-align:right;" id="outputUnit">แต้ม</div>
+          <div style="font-size:28px; color:#4ADE80; text-align:right;" id="outputAmount">0</div>
+          <div style="font-size:14px; color:#E0E0E0; text-align:right;" id="outputUnit">แต้ม</div>
         </div>
-
-        <button style="background:none; border:none; color:#4ade80;" onclick="executeExchange()">แลกเปลี่ยน</button>
+        <button style="background:none; border:none; color:#4ADE80;" onclick="executeExchange()">แลกเปลี่ยน</button>
       </div>
       <button class="close-btn" onclick="closeExchange()">ปิด</button>
     </div>
@@ -226,31 +248,31 @@
   <!-- Reward Modal -->
   <div id="rewardModal" class="modal">
     <div class="modal-content">
-      <h3 style="color:#ffd700; margin-bottom:15px;">เลือกของรางวัล!</h3>
-      <div style="margin:15px 0; font-size:16px; color:#fff;">
+      <h3 style="color:#FFD700; margin-bottom:15px;">เลือกของรางวัล!</h3>
+      <div style="margin:15px 0; font-size:16px; color:#FFFFFF;">
         ดูโฆษณาเสร็จแล้ว! รับรางวัลอย่างใดอย่างหนึ่ง:
       </div>
-      <button style="background:none; border:none; color:#4ade80; margin:10px; padding:14px; border-radius:12px; font-weight:bold; font-size:16px;" onclick="claimPointsReward()">
+      <button style="background:none; border:none; color:#4ADE80; margin:10px; padding:14px; border-radius:12px; font-weight:bold; font-size:16px;" onclick="claimPointsReward()">
         รับ <span id="pointsRewardAmount">300</span> แต้ม
       </button>
-      <button style="background:none; border:none; color:#f39c12; margin:10px; padding:14px; border-radius:12px; font-weight:bold; font-size:16px;" onclick="claimEnergyReward()">
+      <button style="background:none; border:none; color:#F39C12; margin:10px; padding:14px; border-radius:12px; font-weight:bold; font-size:16px;" onclick="claimEnergyReward()">
         รับพลังงาน 50%
       </button>
-      <button style="background:none; border:none; color:#e74c3c;" onclick="closeRewardModal()">ยกเลิก</button>
+      <button style="background:none; border:none; color:#E74C3C;" onclick="closeRewardModal()">ยกเลิก</button>
     </div>
   </div>
 
   <!-- Leaderboard Modal -->
   <div id="leaderboardModal" class="modal">
     <div class="modal-content">
-      <h3 style="color:#ffd700; margin-bottom:15px;">อันดับผู้เล่น</h3>
-      <div style="margin:10px 0; font-size:16px; color:#aaa;">
+      <h3 style="color:#FFD700; margin-bottom:15px;">อันดับผู้เล่น</h3>
+      <div style="margin:10px 0; font-size:16px; color:#E0E0E0;">
         จำนวนผู้เล่นทั้งหมด: <span id="totalPlayers">0</span> คน
       </div>
-      <div id="leaderboardList" style="margin:15px 0; font-size:16px; color:#fff; text-align:left; max-height:300px; overflow-y:auto;">
+      <div id="leaderboardList" style="margin:15px 0; font-size:16px; color:#FFFFFF; text-align:left; max-height:300px; overflow-y:auto;">
         <!-- รายชื่ออันดับจะถูกเติมที่นี่ -->
       </div>
-      <div style="margin:15px 0; font-size:16px; color:#ffd700;">
+      <div style="margin:15px 0; font-size:16px; color:#FFD700;">
         อันดับของคุณ: <span id="playerRank">กำลังโหลด...</span>
       </div>
       <button class="close-btn" onclick="closeLeaderboard()">ปิด</button>
@@ -260,19 +282,16 @@
   <script>
     // Game Variables
     let points = 0, energy = 100, maxEnergy = 100, tapPower = 1, level = 1;
-    let kubaBalanceGame = 0; // KUBA ในเกม (off-chain)
+    let kubaBalanceGame = 0;
     const MAX_LEVEL = 100;
     let isTaping = false, pendingReward = false;
     let exchangeMode = 'kuba-to-points';
+    const POINTS_PER_KUBA = 10000;
+    const MIN_POINTS_EXCHANGE = 100000;
+    const RESTORE_POINTS = 1000000;
+    const RESTORE_KUBA = 100;
+    const RESTORE_LEVEL = 10;
 
-    // Config
-    const POINTS_PER_KUBA = 10000; // 1 KUBA = 10,000 แต้ม
-    const MIN_POINTS_EXCHANGE = 100000; // ขั้นต่ำ 100,000 แต้ม
-    const RESTORE_POINTS = 1000000; // แต้มที่กู้คืน
-    const RESTORE_KUBA = 100; // KUBA ที่กู้คืน
-    const RESTORE_LEVEL = 10; // ระดับที่กู้คืน
-
-    // Load / Save
     function loadGame() {
       points = parseFloat(localStorage.getItem('kuba_points')) || 0;
       level = parseInt(localStorage.getItem('kuba_level')) || 1;
@@ -290,18 +309,14 @@
       localStorage.setItem('kuba_level', level); 
       localStorage.setItem('kuba_energy', energy);
       localStorage.setItem('kuba_balance_game', kubaBalanceGame);
-      updateLeaderboard(); // อัปเดตอันดับทุกครั้งที่บันทึก
+      updateLeaderboard();
       logAction('save', { points, kubaBalanceGame, level });
     }
-
-    // Log Actions
     function logAction(type, data) {
       let logs = JSON.parse(localStorage.getItem('kuba_logs')) || [];
       logs.push({ type, data, timestamp: new Date().toISOString() });
       localStorage.setItem('kuba_logs', JSON.stringify(logs.slice(-100)));
     }
-
-    // Init
     function initGame() {
       points = Math.max(parseFloat(localStorage.getItem('kuba_points')) || 0, RESTORE_POINTS);
       kubaBalanceGame = Math.max(parseFloat(localStorage.getItem('kuba_balance_game')) || 0, RESTORE_KUBA);
@@ -312,22 +327,18 @@
       energy = Math.min(energy, maxEnergy);
       if (points < 0) points = 0;
       logAction('init_restore', { points, kubaBalanceGame, level });
-      updateLeaderboard(); // เริ่มต้นอันดับ
+      updateLeaderboard();
       saveGame();
       regenerateEnergy();
       setupTap();
       updateBalances();
       setInterval(updateBalances, 10000);
     }
-
-    // === BALANCE UPDATE ===
     function updateBalances() {
       document.getElementById('kubaBalance').innerText = kubaBalanceGame.toFixed(4);
       document.getElementById('kubaBalanceExchange').innerText = kubaBalanceGame.toFixed(4);
       logAction('balance_update', { kuba: kubaBalanceGame });
     }
-
-    // === TAP SYSTEM ===
     function setupTap() {
       const bald = document.getElementById('baldHead');
       const baldImg = document.getElementById('baldImg');
@@ -335,13 +346,11 @@
       bald.addEventListener('click', () => {
         if (isTaping) return;
         isTaping = true;
-
         if (energy < tapPower) {
           alert('พลังงานไม่พอ!');
           isTaping = false;
           return;
         }
-
         energy -= tapPower;
         points += tapPower;
         createParticle('+' + tapPower);
@@ -350,11 +359,9 @@
         logAction('tap', { points_before: points - tapPower, points_after: points });
         saveGame();
         updateUI();
-
         setTimeout(() => { isTaping = false; }, 200);
       });
     }
-
     function createParticle(text) {
       const p = document.createElement('div');
       p.className = 'particle';
@@ -364,7 +371,6 @@
       document.body.appendChild(p);
       setTimedRemoval(p, 1000);
     }
-
     function createSparkles(count) {
       for (let i = 0; i < count; i++) {
         const sparkle = document.createElement('div');
@@ -380,18 +386,15 @@
         setTimedRemoval(sparkle, 800);
       }
     }
-
     function applyGlowAndShake(img) {
       img.classList.add('glow', 'shake');
       setTimeout(() => {
         img.classList.remove('glow', 'shake');
       }, 300);
     }
-
     function setTimedRemoval(element, duration) {
       setTimeout(() => element.remove(), duration);
     }
-
     function regenerateEnergy() {
       setInterval(() => {
         if (energy < maxEnergy) {
@@ -401,8 +404,6 @@
         }
       }, 1000);
     }
-
-    // === EXCHANGE SYSTEM ===
     function openExchange() {
       document.getElementById('exchangeModal').style.display = 'block';
       document.getElementById('inputAmount').value = '';
@@ -410,11 +411,9 @@
       setExchangeMode('kuba-to-points');
       updateBalances();
     }
-
     function closeExchange() {
       document.getElementById('exchangeModal').style.display = 'none';
     }
-
     function setExchangeMode(m) {
       exchangeMode = m;
       document.getElementById('inputLabel').innerText = m === 'kuba-to-points' ? 'จำนวน KUBA' : 'จำนวนแต้ม';
@@ -422,17 +421,14 @@
       document.getElementById('outputUnit').innerText = m === 'kuba-to-points' ? 'แต้ม' : 'KUBA';
       calculateOutput();
     }
-
     function calculateOutput() {
       const input = parseFloat(document.getElementById('inputAmount').value) || 0;
       const output = exchangeMode === 'kuba-to-points' ? input * POINTS_PER_KUBA : input / POINTS_PER_KUBA;
       document.getElementById('outputAmount').innerText = output.toLocaleString();
     }
-
     function executeExchange() {
       const input = parseFloat(document.getElementById('inputAmount').value);
       if (input <= 0) return alert('กรุณาใส่จำนวน');
-
       if (exchangeMode === 'kuba-to-points') {
         if (input < 10) return alert('ขั้นต่ำ 10 KUBA!');
         if (kubaBalanceGame < input) return alert(`KUBA ไม่พอ! มี ${kubaBalanceGame.toFixed(4)} KUBA`);
@@ -453,12 +449,9 @@
       updateUI();
       closeExchange();
     }
-
-    // === REWARD, UPGRADE ===
     function showRewardChoice() {
       const btn = document.getElementById('rewardButton');
       btn.disabled = true;
-
       show_10111635().then(() => {
         pendingReward = true;
         updateRewardAmounts();
@@ -469,12 +462,10 @@
         btn.disabled = false;
       });
     }
-
     function updateRewardAmounts() {
       const reward = 300 + (level * 10);
       document.getElementById('pointsRewardAmount').innerText = reward.toLocaleString();
     }
-
     function claimPointsReward() {
       if (!pendingReward) return;
       const reward = 300 + (level * 10);
@@ -485,7 +476,6 @@
       alert(`ได้รับ ${reward.toLocaleString()} แต้ม!`);
       closeRewardModal();
     }
-
     function claimEnergyReward() {
       if (!pendingReward) return;
       const reward = Math.floor(maxEnergy * 0.5);
@@ -496,12 +486,10 @@
       alert(`ได้รับพลังงาน ${reward} หน่วย!`);
       closeRewardModal();
     }
-
     function closeRewardModal() {
       document.getElementById('rewardModal').style.display = 'none';
       pendingReward = false;
     }
-
     function upgradeCharacter() {
       if (level >= MAX_LEVEL) return alert('Max Level!');
       const cost = level === 99 ? 1500000 : 500 + level * 15000;
@@ -515,11 +503,9 @@
       saveGame();
       updateUI();
     }
-
     function openReferralAd() { 
       window.open('https://sunantongsan.github.io/kuba-game/share-ad.html', '_blank'); 
     }
-
     function updateUI() {
       document.getElementById('pointsDisplay').innerText = points.toLocaleString();
       document.getElementById('level').innerText = level;
@@ -528,83 +514,59 @@
       const cost = level >= MAX_LEVEL ? 'MAX' : (level === 99 ? 1500000 : 500 + level * 15000).toLocaleString();
       document.getElementById('upgradeCost').innerText = cost;
     }
-
-    // === LEADERBOARD SYSTEM ===
     function getPlayerName() {
       const tg = window.Telegram.WebApp;
       const user = tg.initDataUnsafe.user;
       return user ? (user.username || user.first_name || 'ผู้เล่นนิรนาม') : 'ผู้เล่นนิรนาม';
     }
-
     function updateLeaderboard() {
       const playerName = getPlayerName();
       const leaderboard = JSON.parse(localStorage.getItem('kuba_leaderboard')) || [];
-      
-      // อัปเดตหรือเพิ่มข้อมูลผู้เล่นปัจจุบัน
       const playerEntry = leaderboard.find(entry => entry.name === playerName);
       if (playerEntry) {
         playerEntry.kuba = kubaBalanceGame;
       } else {
         leaderboard.push({ name: playerName, kuba: kubaBalanceGame });
       }
-      
-      // เรียงลำดับตาม KUBA (มากไปน้อย)
       leaderboard.sort((a, b) => b.kuba - a.kuba);
-      
-      // บันทึกข้อมูลอันดับ
       localStorage.setItem('kuba_leaderboard', JSON.stringify(leaderboard));
-      
       return leaderboard;
     }
-
     function openLeaderboard() {
       const leaderboard = updateLeaderboard();
       const playerName = getPlayerName();
       const leaderboardList = document.getElementById('leaderboardList');
       leaderboardList.innerHTML = '';
-
-      // แสดงจำนวนผู้เล่นทั้งหมด
       document.getElementById('totalPlayers').innerText = leaderboard.length;
-
-      // แสดง 100 อันดับแรก
       leaderboard.slice(0, 100).forEach((entry, index) => {
         const rank = index + 1;
         const entryDiv = document.createElement('div');
         entryDiv.style.marginBottom = '10px';
         entryDiv.innerHTML = `#${rank} ${entry.name}: ${entry.kuba.toFixed(4)} KUBA`;
         if (entry.name === playerName) {
-          entryDiv.style.color = '#ffd700';
+          entryDiv.style.color = '#FFD700';
           entryDiv.style.fontWeight = 'bold';
         }
         leaderboardList.appendChild(entryDiv);
       });
-
-      // แสดงอันดับของผู้เล่นปัจจุบัน
       const playerRank = leaderboard.findIndex(entry => entry.name === playerName) + 1;
       document.getElementById('playerRank').innerText = playerRank ? `#${playerRank}` : 'ไม่มีอันดับ';
-      
       document.getElementById('leaderboardModal').style.display = 'block';
     }
-
     function closeLeaderboard() {
       document.getElementById('leaderboardModal').style.display = 'none';
     }
-
-    // เพิ่มการตรวจจับ "kuba" ผ่าน Telegram Web App
     document.addEventListener('DOMContentLoaded', () => {
       const tg = window.Telegram.WebApp;
       tg.ready();
       tg.expand();
-
-      // ตรวจสอบ initDataUnsafe เพื่อดู start_param
       const initDataUnsafe = tg.initDataUnsafe || {};
       const startParam = initDataUnsafe.start_param || '';
       if (startParam.toLowerCase().includes('kuba')) {
-        // ถ้าพบ "kuba" ใน start parameter แสดงข้อความและปุ่มในหน้าเกม
         const kubaResponse = document.createElement('div');
         kubaResponse.innerHTML = `
-          <h2 style="color: #ffd700; margin: 20px 0;">พบคำว่า "kuba"!</h2>
-          <p style="color: #aaa; margin-bottom: 20px;">นี่คือเกม KUBAMINER ของเรา - ขุดเหรียญ KUBA ฟรี!</p>
+          <h2 style="color: #FFD700; margin: 20px 0;">พบคำว่า "kuba"!</h2>
+          <p style="color: #E0E0E0; margin-bottom: 20px;">นี่คือเกม KUBAMINER ของเรา - ขุดเหรียญ KUBA ฟรี!</p>
           <button class="exchange-btn" onclick="tg.openLink('https://t.me/kubaminer_bot/app')">เล่น KUBAMINER</button>
           <button class="reward-btn" onclick="tg.openLink('https://sunantongsan.github.io/kuba-game/share-ad.html')">รับ Airdrop</button>
           <button class="exchange-btn" onclick="tg.close()">ปิด</button>
@@ -612,8 +574,6 @@
         document.querySelector('.container').insertBefore(kubaResponse, document.querySelector('.bald-container'));
       }
     });
-
-    // Start
     Telegram.WebApp.ready(); 
     Telegram.WebApp.expand(); 
     initGame();
