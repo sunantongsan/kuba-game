@@ -1,0 +1,8 @@
+{
+  "visitors": [
+    { "userId": "123456789", "username": "@UserExample", "visitTime": "2025-11-06T20:30:00Z" }
+  ],
+  "players": [
+    { "userId": "123456789", "username": "@UserExample", "points": 5000, "kubaBalance": 1.2345, "level": 2, "lastUpdate": "2025-11-06T20:30:00Z" }
+  ]
+}
