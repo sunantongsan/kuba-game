@@ -554,7 +554,7 @@
     }
     function updateLeaderboard() {
       const playerName = getPlayerName();
-      const leaderboard = JSON.parse(localStorage.getItem('kuba_leaderboard')) || [];
+      const leaderboard = JSON.parse(localStorage.getItem('kuba_leaderboard') || '[]');
       const playerEntry = leaderboard.find(entry => entry.name === playerName);
       if (playerEntry) {
         playerEntry.kuba = kubaBalanceGame;
@@ -610,6 +610,17 @@
     Telegram.WebApp.ready(); 
     Telegram.WebApp.expand(); 
     initGame();
+
+    // รับการอัปเดตแต้มจาก tasks.html
+    window.addEventListener('message', (event) => {
+      if (event.data.type === 'addPoints') {
+        points += event.data.amount;
+        addKuba(event.data.amount / 10000); // เพิ่ม KUBA ด้วย (ถ้าต้องการ)
+        saveGame();
+        updateUI();
+        alert(`Received ${event.data.amount.toLocaleString()} Points!`);
+      }
+    });
   </script>
 </body>
 </html>
