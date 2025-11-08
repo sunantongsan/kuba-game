@@ -74,7 +74,11 @@
     }
     .reward-btn { color: #FF6B6B; }
     .upgrade-btn { color: #F39C12; }
-    .refer-btn { color: #2ED573; }
+    .refer-btn { 
+      color: #2ED573; 
+      width: auto; 
+      margin-left: auto; 
+    } /* เปลี่ยนจากเดิมให้เข้ากับ Tasks */
     .leaderboard-btn { 
       color: #00C4FF; 
       background: none;
@@ -230,9 +234,9 @@
     </div>
 
     <button class="upgrade-btn" onclick="upgradeCharacter()">Upgrade (<span id="upgradeCost">500</span> Points)</button>
-    <button class="refer-btn" onclick="openReferralAd()">Claim Airdrop!</button>
-    <button class="rank-btn" id="rankBtn" onclick="showRank()">Check My Rank</button> <!-- เพิ่มปุ่มนี้ -->
-    <div id="status"></div> <!-- เพิ่ม div สำหรับแสดงสถานะ -->
+    <button class="refer-btn" onclick="window.open('tasks.html', '_blank')">Tasks</button> <!-- เปลี่ยนจาก Claim Airdrop! เป็น Tasks -->
+    <button class="rank-btn" id="rankBtn" onclick="showRank()">Check My Rank</button>
+    <div id="status"></div>
   </div>
 
   <!-- Exchange Modal -->
