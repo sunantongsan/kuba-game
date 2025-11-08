@@ -33,6 +33,11 @@
       text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
     }
     button:active { transform: scale(0.98); opacity: 0.8; }
+    button.claimable {
+      color: #2ECC71; /* สีเขียว */
+      border: 2px solid #2ECC71; /* กรอบ */
+      box-shadow: 0 0 8px #2ECC71; /* เอฟเฟกต์แสง */
+    }
     .close-btn { color: #E74C3C; }
   </style>
 </head>
@@ -40,16 +45,16 @@
   <div class="container">
     <h1>Tasks</h1>
     <div class="task-item">
-      1. Follow Twitter <a href="https://x.com/KubacoinAirdrop" target="_blank">@KubacoinAirdrop</a> to receive 10,000 KUBA
-      <button onclick="claimTask(10000, 'follow_twitter')">Claim</button>
+      1. Follow Twitter <a href="https://x.com/KubacoinAirdrop" target="_blank">@KubacoinAirdrop</a> to receive 100,000 Points
+      <button id="claim1" onclick="claimTask(100000, 'follow_twitter', 1)">Claim</button>
     </div>
     <div class="task-item">
-      2. Join Telegram group <a href="https://t.me/+gzmYsT0sBjRmMzg1" target="_blank">https://t.me/+gzmYsT0sBjRmMzg1</a> to receive 10,000 KUBA
-      <button onclick="claimTask(10000, 'join_telegram')">Claim</button>
+      2. Join Telegram group <a href="https://t.me/+gzmYsT0sBjRmMzg1" target="_blank">https://t.me/+gzmYsT0sBjRmMzg1</a> to receive 100,000 Points
+      <button id="claim2" onclick="claimTask(100000, 'join_telegram', 2)">Claim</button>
     </div>
     <div class="task-item">
-      3. Invite a friend using your referral link: <a href="https://t.me/kubaminer_bot/app?startapp=ref_{{userId}}" id="referralLink" target="_blank">Click here</a> to receive 20,000 KUBA per friend (coins awarded automatically when friend joins)
-      <button onclick="claimTask(20000, 'invite_friend')">Claim</button>
+      3. Invite a friend using your referral link: <a href="https://t.me/kubaminer_bot/app?startapp=ref_{{userId}}" id="referralLink" target="_blank">Click here</a> to receive 200,000 Points per friend (max 20 claims)
+      <button id="claim3" onclick="claimTask(200000, 'invite_friend', 3)">Claim</button>
     </div>
     <button class="close-btn" onclick="window.close()">Close</button>
   </div>
@@ -59,12 +64,52 @@
     let userId = window.Telegram.WebApp.initDataUnsafe.user?.id || Math.random().toString(36).substr(2, 9);
     document.getElementById('referralLink').href = `https://t.me/kubaminer_bot/app?startapp=ref_${userId}`;
 
+    // โหลดสถานะการเคลมจาก localStorage
+    let claimedTasks = JSON.parse(localStorage.getItem('kuba_claimed_tasks') || '{}');
+    let claimsCount = JSON.parse(localStorage.getItem('kuba_claims_count') || '{}');
+
     // ฟังก์ชันจัดการการเคลม
-    function claimTask(amount, taskType) {
-      let confirmed = confirm(`Confirm claiming ${amount} KUBA for ${taskType}?`);
+    function claimTask(amount, taskType, taskId) {
+      if (claimedTasks[taskId] && taskId !== 3) {
+        alert('This task has already been claimed!');
+        return;
+      }
+      if (taskId === 3 && (claimsCount[taskId] || 0) >= 20) {
+        alert('Maximum 20 claims reached for this task!');
+        return;
+      }
+
+      let confirmed = confirm(`Confirm claiming ${amount} Points for ${taskType}?`);
       if (confirmed) {
-        addKuba(amount); // เรียกจาก user-manager.js
-        alert(`Claimed ${amount} KUBA for ${taskType}!`);
+        // เพิ่มแต้มในเกม
+        addPoints(amount); // ฟังก์ชันใหม่ใน index.html จะต้อง sync กับ points
+        if (taskId !== 3) {
+          claimedTasks[taskId] = true;
+          localStorage.setItem('kuba_claimed_tasks', JSON.stringify(claimedTasks));
+          document.getElementById(`claim${taskId}`).classList.remove('claimable');
+          document.getElementById(`claim${taskId}`).disabled = true;
+        } else {
+          claimsCount[taskId] = (claimsCount[taskId] || 0) + 1;
+          localStorage.setItem('kuba_claims_count', JSON.stringify(claimsCount));
+          if (claimsCount[taskId] >= 20) {
+            document.getElementById(`claim${taskId}`).classList.remove('claimable');
+            document.getElementById(`claim${taskId}`).disabled = true;
+          }
+        }
+        alert(`Claimed ${amount} Points for ${taskType}!`);
+      }
+    }
+
+    // ตรวจสอบสถานะภารกิจและปรับปุ่ม
+    function updateTaskButtons() {
+      if (!claimedTasks[1]) {
+        document.getElementById('claim1').classList.add('claimable');
+      }
+      if (!claimedTasks[2]) {
+        document.getElementById('claim2').classList.add('claimable');
+      }
+      if ((claimsCount[3] || 0) < 20) {
+        document.getElementById('claim3').classList.add('claimable');
       }
     }
 
@@ -78,16 +123,26 @@
         referrals[refId].count += 1;
         localStorage.setItem('kuba_referrals', JSON.stringify(referrals));
 
-        // แจก 20,000 KUBA ให้ผู้แนะนำ
+        // แจก 200,000 แต้มให้ผู้แนะนำ
         let referrerUsers = JSON.parse(localStorage.getItem('kubaUsers') || '{}');
         if (referrerUsers[refId]) {
-          referrerUsers[refId].kuba += 20000;
+          referrerUsers[refId].points = (referrerUsers[refId].points || 0) + 200000;
           localStorage.setItem('kubaUsers', JSON.stringify(referrerUsers));
         }
-        alert(`Welcome! 20,000 KUBA awarded to your referrer (${refId}).`);
+        alert(`Welcome! 200,000 Points awarded to your referrer (${refId}).`);
       }
     }
-    checkReferral(); // เรียกเมื่อโหลดหน้า
+
+    // เรียกฟังก์ชันเมื่อโหลดหน้า
+    document.addEventListener('DOMContentLoaded', () => {
+      updateTaskButtons();
+      checkReferral();
+    });
+
+    // ฟังก์ชันเพิ่มแต้ม (ต้อง sync กับ index.html)
+    function addPoints(amount) {
+      window.parent.postMessage({ type: 'addPoints', amount: amount }, '*');
+    }
   </script>
 </body>
 </html>
