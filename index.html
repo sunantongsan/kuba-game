@@ -44,6 +44,12 @@
       font-weight: bold; 
       color: #FFD700; 
       text-shadow: 0 0 10px #FFD700, 0 0 20px #FFD700;
+      animation: fire 2s infinite alternate; /* เอฟเฟกต์ไฟลุก */
+    }
+    @keyframes fire {
+      0% { text-shadow: 0 0 10px #FF4500, 0 0 20px #FF4500; color: #FF4500; }
+      50% { text-shadow: 0 0 15px #FFA500, 0 0 25px #FFA500; color: #FFA500; }
+      100% { text-shadow: 0 0 10px #FFD700, 0 0 20px #FFD700; color: #FFD700; }
     }
     .button-row {
       display: flex;
@@ -76,9 +82,8 @@
     .upgrade-btn { color: #F39C12; }
     .refer-btn { 
       color: #2ED573; 
-      width: auto; 
-      margin-left: auto; 
-    } /* เปลี่ยนจากเดิมให้เข้ากับ Tasks */
+      width: 92%; /* กลับไปตรงกลาง */
+    }
     .leaderboard-btn { 
       color: #00C4FF; 
       background: none;
@@ -216,7 +221,7 @@
       </div>
     </div>
 
-    <h1>KUBAMINER</h1>
+    <h1>KUBAMINER</h1> <!-- เพิ่มเอฟเฟกต์ไฟลุก -->
     <div class="button-row">
       <button class="leaderboard-btn" onclick="openLeaderboard()">Leaderboard</button>
       <button class="exchange-btn" onclick="openExchange()">Exchange</button>
@@ -234,7 +239,7 @@
     </div>
 
     <button class="upgrade-btn" onclick="upgradeCharacter()">Upgrade (<span id="upgradeCost">500</span> Points)</button>
-    <button class="refer-btn" onclick="window.open('tasks.html', '_blank')">Tasks</button> <!-- เปลี่ยนจาก Claim Airdrop! เป็น Tasks -->
+    <button class="refer-btn" onclick="window.open('tasks.html', '_blank')">Tasks</button> <!-- ปรับกลับไปตรงกลาง -->
     <button class="rank-btn" id="rankBtn" onclick="showRank()">Check My Rank</button>
     <div id="status"></div>
   </div>
