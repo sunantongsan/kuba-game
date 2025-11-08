@@ -5,6 +5,7 @@
   <title>KUBAMINER</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src='//libtl.com/sdk.js' data-zone='10111635' data-sdk='show_10111635'></script>
+  <script src="user-manager.js"></script> <!-- เพิ่มการลิงก์ไฟล์ใหม่ -->
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
     *:focus { outline: none; }
@@ -24,7 +25,6 @@
       align-items: flex-start; 
       padding: 10px; 
       font-size: 16px;
-      /* ลบ background ออก */
     }
     .topbar .left { 
       color: #FFD700; 
@@ -52,8 +52,8 @@
       margin: 10px 0;
     }
     button {
-      background: none; /* ลบพื้นหลัง */
-      border: none; /* ลบกรอบ */
+      background: none;
+      border: none;
       color: #FFFFFF; 
       padding: 10px 14px; 
       border-radius: 12px; 
@@ -77,7 +77,7 @@
     .refer-btn { color: #2ED573; }
     .leaderboard-btn { 
       color: #00C4FF; 
-      background: none; /* ลบพื้นหลัง */
+      background: none;
       border: none; 
       box-shadow: 0 0 8px #00C4FF;
       font-size: 14px;
@@ -87,12 +87,24 @@
       display: inline-block;
       text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
     }
+    .rank-btn { 
+      color: #00C4FF; 
+      background: none;
+      border: none; 
+      box-shadow: 0 0 8px #00C4FF;
+      font-size: 14px;
+      padding: 8px 16px;
+      width: auto;
+      margin-left: auto;
+      display: inline-block;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    }
     .info { 
       font-size: 16px;
       margin: 8px 0; 
       color: #E0E0E0;
       padding: 8px; 
-      border: none; /* ลบกรอบ */
+      border: none;
       text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
     }
     .highlight { 
@@ -172,7 +184,7 @@
       overflow-y: auto; 
     }
     .modal-content { 
-      background: none; /* ลบพื้นหลัง */
+      background: none;
       margin: 5% auto; 
       padding: 20px; 
       width: 90%; 
@@ -200,25 +212,28 @@
       </div>
     </div>
 
-<h1>KUBAMINER</h1>
-<div class="button-row">
-  <button class="leaderboard-btn" onclick="openLeaderboard()">Leaderboard</button>
-  <button class="exchange-btn" onclick="openExchange()">Exchange</button>
-</div>
+    <h1>KUBAMINER</h1>
+    <div class="button-row">
+      <button class="leaderboard-btn" onclick="openLeaderboard()">Leaderboard</button>
+      <button class="exchange-btn" onclick="openExchange()">Exchange</button>
+    </div>
 
-<button class="reward-btn" id="rewardButton" onclick="showRewardChoice()">Claim Reward</button>
-<div class="info">
-  Level: <span class="highlight" id="level">1</span> | Energy: <span class="energy-text" id="energy">100</span> / <span id="maxEnergy">100</span>
-</div>
+    <button class="reward-btn" id="rewardButton" onclick="showRewardChoice()">Claim Reward</button>
+    <div class="info">
+      Level: <span class="highlight" id="level">1</span> | Energy: <span class="energy-text" id="energy">100</span> / <span id="maxEnergy">100</span>
+    </div>
 
-<div class="bald-container">
-  <div class="bald" id="baldHead">
-    <img id="baldImg" src="bald.png" alt="Tap" onerror="this.src='https://via.placeholder.com/300?text=TAP'" />
+    <div class="bald-container">
+      <div class="bald" id="baldHead">
+        <img id="baldImg" src="bald.png" alt="Tap" onerror="this.src='https://via.placeholder.com/300?text=TAP'" />
+      </div>
+    </div>
+
+    <button class="upgrade-btn" onclick="upgradeCharacter()">Upgrade (<span id="upgradeCost">500</span> Points)</button>
+    <button class="refer-btn" onclick="openReferralAd()">Claim Airdrop!</button>
+    <button class="rank-btn" id="rankBtn" onclick="showRank()">Check My Rank</button> <!-- เพิ่มปุ่มนี้ -->
+    <div id="status"></div> <!-- เพิ่ม div สำหรับแสดงสถานะ -->
   </div>
-</div>
-
-<button class="upgrade-btn" onclick="upgradeCharacter()">Upgrade (<span id="upgradeCost">500</span> Points)</button>
-<button class="refer-btn" onclick="openReferralAd()">Claim Airdrop!</button>  </div>
 
   <!-- Exchange Modal -->
   <div id="exchangeModal" class="modal">
@@ -359,6 +374,7 @@
         }
         energy -= tapPower;
         points += tapPower;
+        addKuba(tapPower); // อัปเดต KUBA ไประบบจัดการ
         createParticle('+' + tapPower);
         createSparkles(5);
         applyGlowAndShake(baldImg);
@@ -448,6 +464,7 @@
         if (points < neededPoints) return alert(`Not enough Points! You need ${neededPoints.toLocaleString()} Points`);
         points -= neededPoints;
         kubaBalanceGame += input / POINTS_PER_KUBA;
+        addKuba(input / POINTS_PER_KUBA); // อัปเดต KUBA ไประบบจัดการ
         logAction('exchange_points_to_kuba', { points: neededPoints, kuba: input / POINTS_PER_KUBA });
         alert(`Exchange successful! +${(input / POINTS_PER_KUBA).toLocaleString()} KUBA`);
       }
@@ -476,6 +493,7 @@
       if (!pendingReward) return;
       const reward = 300 + (level * 10);
       points += reward;
+      addKuba(reward / 10000); // อัปเดต KUBA ไประบบจัดการ (สมมติ 1 Point = 0.0001 KUBA)
       logAction('claim_points', { reward });
       saveGame();
       updateUI();
@@ -586,4 +604,3 @@
   </script>
 </body>
 </html>
-
