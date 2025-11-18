@@ -1,35 +1,32 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="https://i.imgur.com/gReL3s2.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Kuba Hit Game</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-      body {
-        -webkit-user-select: none; /* Safari */
-        -ms-user-select: none; /* IE 10 and IE 11 */
-        user-select: none; /* Standard syntax */
-      }
-    </style>
-    <script src='//libtl.com/sdk.js' data-zone='10111635' data-sdk='show_10111635'></script>
-  <script type="importmap">
-{
-  "imports": {
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "vite": "https://aistudiocdn.com/vite@^7.2.2",
-    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1"
-  }
-}
-</script>
-<link rel="stylesheet" href="/index.css">
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>KUBA GAME</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-  <body class="bg-gray-900">
-    <div id="root"></div>
-    <script type="module" src="/src/index.tsx"></script>
-  <script type="module" src="/index.tsx"></script>
+<body>
+
+    <h1>KUBA GAME 🥚</h1>
+
+    <div id="walletBox">
+        <button id="connectTon">Connect TON Wallet</button>
+        <div id="walletAddress"></div>
+    </div>
+
+    <div id="infoBox">
+        <p>🔨 ตีไข่ได้วันนี้: <span id="hitsLeft">5</span> ครั้ง</p>
+        <p>📺 ดูโฆษณาแล้ว: <span id="adsCount">0</span> / 20 ครั้ง</p>
+        <p>💰 เหรียญ KUBA ทั้งหมด: <span id="kubaBalance">0</span></p>
+    </div>
+
+    <button id="hitEgg">ตีไข่!</button>
+    <button id="watchAd">ดูโฆษณา</button>
+
+    <div id="result"></div>
+
+    <button id="claim">เคลมเหรียญ</button>
+
+    <script src="script.js"></script>
 </body>
 </html>
